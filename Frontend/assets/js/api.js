@@ -2,9 +2,9 @@
 // assets/js/api.js — Global API for login, users, clients, councils
 // ============================================
 
-const BASE_URL = "http://127.0.0.1:8000/api"; // ✅ matches FastAPI backend
+const BASE_URL = "http://13.40.179.195:8000/api"; // ✅ matches FastAPI backend
 // ---------- COUNCILS (dynamic) ----------
-const COUNCIL_BASE = "http://127.0.0.1:8000/api/councils";
+const COUNCIL_BASE = "http://13.40.179.195:8000/api/councils";
 
 // ---------------- AUTH ----------------
 export async function apiLogin(username, password) {
