@@ -1473,19 +1473,25 @@ async def get_notifications(db: AsyncSession = Depends(get_db)):
 # -------------------------------------------------------------------
 @app.on_event("startup")
 async def on_startup():
-    # do NOT create tables — you said they are already created
-    # just verify connection & load SUPER_ADMINS
+    """
+    Automatically ensure all database tables exist on startup.
+    Also load SUPER_ADMINS from .env
+    """
     try:
         async with engine.begin() as conn:
+            # Test DB connection
             await conn.execute(select(func.now()))
-        print("✅ Database connected and SUPER_ADMINS loaded.")
+            # Auto-create any missing tables
+            await conn.run_sync(Base.metadata.create_all)
+        print("✅ Database connected and tables verified/created.")
     except Exception as e:
         print(f"❌ Database connection failed: {e}")
         raise
+
+    # Load super admins from environment
     global SUPER_ADMINS
     SUPER_ADMINS = _load_super_admins_from_env()
     if not SUPER_ADMINS:
-        # still allow running if DB users exist — remove hard stop
-        print("⚠️ No SUPER ADMINS configured in .env (SUPERADMINS=[...]); relying on DB users only.")
+        print("⚠ No SUPER ADMINS configured in .env (SUPERADMINS=[...]); relying on DB users only.")
 
 app.include_router(api)
