@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Services - Your Ideal</title>
+
+  <!-- Core Styles -->
+  <link rel="stylesheet" href="../../assets/css/header.css" />
+  <link rel="stylesheet" href="../../assets/css/row-pagination.css" />
+  <link rel="stylesheet" href="../../assets/css/services.css" />
+  <link rel="stylesheet" href="../../assets/css/view-service.css" />
+  <link rel="stylesheet" href="../../assets/css/statement.css" />
+</head>
+
+<body>
+  <header id="mainHeader"></header>
+
+  <div class="back-container">
+    <button class="back-btn" onclick="window.history.back()">↩ Back</button>
+  </div>
+
+  <!-- PAGE TITLE / CONTEXT -->
+  <section class="page-title">
+    <h2 id="svcTitle">Service Information</h2>
+    <div id="svcSubtitle" class="muted"></div>
+  </section>
+
+  <!-- LIST (per client) -->
+  <section class="service-info" id="serviceListSection">
+    <div class="action-row">
+      <button id="addServiceBtn" class="add-btn" title="Add New Service">➕ Add Service</button>
+    </div>
+    <div class="table-wrap">
+      <table class="service-table" id="serviceTable">
+        <thead>
+          <tr>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Referred By</th>
+            <th>Service Type</th>
+            <th>Setup Fee</th>
+            <th>Setup Budget</th>
+            <th>View</th>
+            <th>Statement</th>
+            <th>Notes</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- DETAILS (View/Edit/New) -->
+  <section id="serviceDetailsSection" style="display:none;">
+    <div id="serviceForm"></div>
+    <div class="service-buttons"></div>
+  </section>
+
+  <!-- STATEMENTS (per service) -->
+  <section id="statementRoot" style="display:none;"></section>
+
+  <div class="pagination row-pagination" id="paginationContainer"></div>
+
+  <!-- Entry -->
+  <script type="module" src="../../assets/js/Services/services.js"></script>
+</body>
+</html>

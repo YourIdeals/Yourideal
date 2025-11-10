@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Management - Your Ideal</title>
+
+  <!-- Existing CSS -->
+  <link rel="stylesheet" href="../assets/css/header.css">
+  <link rel="stylesheet" href="../assets/css/access-control.css">
+  <link rel="stylesheet" href="../assets/css/clientmanagement.css">
+  <link rel="stylesheet" href="../assets/css/row-pagination.css">
+
+  <!-- ✅ Service Module CSS (for dynamic Services UI) -->
+  <link rel="stylesheet" href="../assets/css/services.css">
+  <link rel="stylesheet" href="../assets/css/view-service.css">
+  <link rel="stylesheet" href="../assets/css/statement.css">
+</head>
+
+<body>
+
+  <!-- ✅ Header will be injected by header.js -->
+
+  <!-- ✅ Search Bar -->
+  <div class="search-bar">
+    <input type="text" id="clientSearch" placeholder="Search using client ID, name">
+    <button id="searchBtn">🔍 Search</button>
+  </div>
+
+  <!-- ✅ Action Buttons -->
+  <div class="action-buttons">
+    <button id="clientReportBtn" class="btn-client">Client Report</button>
+    <button id="addClientBtn" class="btn-client">Add New Client</button>
+  </div>
+
+  <!-- ✅ Client Table -->
+  <table class="client-table">
+    <thead>
+      <tr>
+        <th>Client Name</th>
+        <th>Client ID</th>
+        <th>Local Council</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="clientTableBody">
+      <!-- Rows will be inserted here dynamically -->
+    </tbody>
+  </table>
+
+  <!-- ✅ Pagination -->
+  <div class="pagination"></div>
+
+  <script type="module" src="../assets/js/clientmanagement.js"></script>
+</body>
+</html>

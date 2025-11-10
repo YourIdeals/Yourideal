@@ -1,0 +1,55 @@
+[
+  {
+    "id": "0000045562",
+    "title": "Mrs.",
+    "first_name": "Anthonia",
+    "last_name": "Daniel",
+    "dob": "1945-10-20",
+    "gender": "Female",
+    "councilId": 1,
+    "phone": "0978456123",
+    "email": "anthonia@gmail.com",
+    "address": "123, High Street ,Manor Park, London, E12 6SL",
+    "disabilities": [
+      "None"
+    ],
+    "kin_name": "Bajwa",
+    "kin_relation": "Mother",
+    "kin_relation_other": "",
+    "kin_address": "95, Sandford Road, East Ham, E6 3RB",
+    "kin_email": "bajwa@gmail.com",
+    "ethnicity_type": "Asian/Asian British",
+    "ethnicity": "Indian",
+    "language": "English",
+    "status": "Active",
+    "optional_fields": [],
+    "profileImg": "../images/profile.png"
+  },
+  {
+    "id": "R0000045562",
+    "title": "Mr.",
+    "first_name": "Hassan",
+    "last_name": "Haja",
+    "dob": "1994-06-27",
+    "gender": "Male",
+    "councilId": 1,
+    "phone": "07667881115",
+    "email": "hassan27@gmail.com",
+    "address": "Pioneer Point, Ilford , IG1 2NZ",
+    "disabilities": [
+      "Other",
+      "OCD"
+    ],
+    "kin_name": "Lulu Mariam",
+    "kin_relation": "Wife",
+    "kin_relation_other": "",
+    "kin_address": "Pioneer Point, Ilford , IG1 2NZ",
+    "kin_email": "lulu26@gmail.com",
+    "ethnicity_type": "Asian/Asian British",
+    "ethnicity": "Indian",
+    "language": "Tamil",
+    "status": "Active",
+    "optional_fields": [],
+    "profileImg": "../images/profile.png"
+  }
+]

@@ -1,0 +1,128 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-container {
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.logo {
+  margin-bottom: 20px;
+}
+
+.logo img {
+  width: 150px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid #999;
+  border-radius: 25px;
+  padding: 5px 15px;
+  background: #fff;
+}
+
+.input-group input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+  padding: 10px;
+  background: transparent;
+}
+
+.toggle-eye {
+  width: 22px;
+  cursor: pointer;
+}
+
+.login-btn {
+  width: 100px;
+  background-color: #888;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  display: block;
+  margin: 0 auto;
+}
+
+.login-btn:hover {
+  background-color: #666;
+}
+
+.error-msg {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+  display: none;
+}
+
+/* ===== Responsive Breakpoints ===== */
+
+/* Small Mobile (up to 480px) */
+@media (max-width: 480px) {
+  .logo img {
+    width: 100px;
+  }
+  .login-container {
+    max-width: 280px;
+    padding: 10px;
+  }
+  .login-btn {
+    width: 100%;
+    font-size: 14px;
+    padding: 10px;
+  }
+}
+
+/* Tablet (481px to 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .logo img {
+    width: 120px;
+  }
+  .login-container {
+    max-width: 350px;
+  }
+}
+
+/* Laptop (769px to 1200px) */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .logo img {
+    width: 140px;
+  }
+  .login-container {
+    max-width: 400px;
+  }
+}
+
+/* Desktop (1201px and above) */
+@media (min-width: 1201px) {
+  .logo img {
+    width: 150px;
+  }
+  .login-container {
+    max-width: 450px;
+  }
+}

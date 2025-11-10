@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add New Client – Your Ideal</title>
+  <link rel="stylesheet" href="../assets/css/header.css"/>
+  <link rel="stylesheet" href="../assets/css/access-control.css">
+  <link rel="stylesheet" href="../assets/css/Viewprofile1.css"/>
+  <link rel="stylesheet" href="../assets/css/services.css"/>
+  <link rel="stylesheet" href="../assets/css/addclient.css"/><!-- NEW -->
+</head>
+<body>
+  <header id="mainHeader"></header>
+
+  <main class="add-client-container">
+    <h2>Add New Client</h2>
+
+    <!-- 🧩 Section 1: Client Details -->
+    <section id="clientSection">
+      <h3>Client Information</h3>
+      <form id="addClientForm" class="details-grid"></form>
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <button id="saveClientBtn" class="btn save btn-client" type="button">Save Client</button>
+        <button id="cancelBtn" class="btn edit" type="button">Cancel</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- 🧩 Modal: Service Form (mandatory) -->
+  <div id="serviceModal" class="yi-modal-backdrop" aria-hidden="true">
+    <div class="yi-modal" role="dialog" aria-modal="true">
+      <header>
+        <div>Link Service to Client</div>
+        <button id="modalCloseBlocked" class="btn secondary" title="Service is mandatory" disabled>✖</button>
+      </header>
+      <main>
+        <div class="section-header">Service Information</div>
+        <form id="addServiceForm" class="details-grid"></form>
+      </main>
+      <footer>
+        <button id="saveServiceBtn" class="btn save btn-service" type="button">Save Service</button>
+      </footer>
+    </div>
+  </div>
+
+  <script type="module" src="../assets/js/addclient.js"></script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+/* =======================
+   Base Header Layout
+======================= */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 10px 20px;
+  position: relative;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Logo */
+#logoBtn {
+  height: 40px;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+#logoBtn:hover {
+  transform: scale(1.05);
+}
+
+/* =======================
+   Navigation Links
+======================= */
+nav {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
+}
+
+nav a {
+  text-decoration: none;
+  color: #111;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease-in-out;
+}
+
+nav a:hover {
+  color: #0073e6;
+}
+
+nav a.active {
+  color: #0073e6;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+/* =======================
+   Right Menu (Bell, Profile, Logout, Hamburger)
+======================= */
+.right-menu {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Logout */
+.logout {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.logout img {
+  width: 18px;
+  height: 14px;
+  transition: opacity 0.2s ease;
+}
+.logout:hover img {
+  opacity: 0.8;
+}
+
+/* =======================
+   Notifications
+======================= */
+.notification {
+  position: relative;
+}
+
+.notification button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  font-size: 20px;
+}
+
+.badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background: red;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 5px;
+  border-radius: 50%;
+  min-width: 16px;
+  height: 16px;
+  line-height: 12px;
+  text-align: center;
+}
+
+/* Notification Dropdown */
+.notifications {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 50px;
+  background: white;
+  color: black;
+  border-radius: 8px;
+  padding: 10px;
+  width: 320px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  max-height: 320px;
+  overflow-y: auto;
+  z-index: 600;
+}
+
+.notifications::-webkit-scrollbar {
+  width: 6px;
+}
+.notifications::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+.notifications::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+.no-notif {
+  text-align: center;
+  color: #666;
+  padding: 15px 0;
+  font-size: 13px;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 5px;
+  border-bottom: 1px solid #eee;
+  transition: background 0.2s ease-in-out;
+}
+
+.notif-item:last-child {
+  border-bottom: none;
+}
+
+.notif-item:hover {
+  background: #f8f9fa;
+}
+
+.notif-item img {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+}
+
+.notif-item p {
+  margin: 0;
+  font-size: 14px;
+  color: #222;
+}
+
+.notif-item small {
+  color: #666;
+  font-size: 12px;
+}
+
+.notif-item.unread {
+  background-color: #f0f8ff;
+  border-left: 3px solid #007bff;
+}
+.notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  border-bottom: 1px solid #ccc;
+  font-weight: bold;
+}
+.notif-header button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+}
+.notif-header button:hover {
+  text-decoration: underline;
+}
+
+/* =======================
+   Profile Dropdown
+======================= */
+.profile {
+  position: relative;
+}
+
+.profile img#profileBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.profile img#profileBtn:hover {
+  transform: scale(1.05);
+}
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 50px;
+  background: white;
+  color: black;
+  border-radius: 8px;
+  padding: 15px;
+  width: 250px;
+  display: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  text-align: center;
+  z-index: 600;
+}
+
+.dropdown img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+  border: 2px solid #0073e6;
+}
+
+/* =======================
+   Hamburger & Mobile Menu
+======================= */
+.hamburger {
+  display: none;
+  cursor: pointer;
+}
+
+.hamburger img {
+  width: 28px;
+}
+
+.mobile-menu {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  background: white;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 200;
+}
+
+.mobile-menu a {
+  padding: 12px 0;
+  color: black;
+  border-bottom: 1px solid #eee;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.mobile-menu a:hover {
+  color: #0073e6;
+}
+
+/* =======================
+   Responsive Adjustments
+======================= */
+@media (max-width: 900px) {
+  nav {
+    display: none;
+  }
+
+  .hamburger {
+    display: block;
+  }
+
+  .notifications {
+    right: 10px;
+    width: 260px;
+    font-size: 13px;
+  }
+
+  .notif-item img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .notif-item p {
+    font-size: 13px;
+  }
+
+  .notif-item small {
+    font-size: 11px;
+  }
+}

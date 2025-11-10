@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "name": "London Borough of Newham",
+    "address": "Newham Dockside, 1000 Dockside Road",
+    "city": "London",
+    "postcode": "E16 2QU",
+    "status": "Enabled",
+    "createdAt": "2025-10-22T11:20:05"
+  },
+  {
+    "id": 2,
+    "name": "Redbridge London Borough Council",
+    "address": "Lynton House, Ilford",
+    "city": "London",
+    "postcode": "IG1 1NY",
+    "status": "Disabled",
+    "createdAt": "2025-10-22T11:49:42"
+  }
+]

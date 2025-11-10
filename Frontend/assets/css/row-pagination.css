@@ -1,0 +1,38 @@
+/* Row Pagination - Universal Style */
+.row-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+}
+
+.row-pagination-label {
+  color: #333;
+  font-weight: 500;
+}
+
+.row-pagination-btn {
+  background: #f3f3f3;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  padding: 5px 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: 0.2s;
+}
+
+.row-pagination-btn:hover {
+  background: #e3e3e3;
+}
+
+.row-pagination-btn:active {
+  background: #d3d3d3;
+}
+
+.row-pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

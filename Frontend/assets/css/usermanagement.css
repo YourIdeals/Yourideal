@@ -1,0 +1,131 @@
+/* =========================================
+   User Management Styles
+   ========================================= */
+body {
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background: #f9fbfd;
+  margin: 0;
+  padding: 0;
+}
+
+.user-management-container {
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  padding: 1rem;
+}
+
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+
+.user-header h2 {
+  color: #1e3a8a;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: #1d4ed8; }
+
+.btn-secondary {
+  background: #9ca3af;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+}
+.btn-secondary:hover { background: #6b7280; }
+
+.hidden { display: none; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem 1rem;
+  margin-bottom: 1rem;
+}
+.form-grid label { font-weight: 600; }
+.form-grid input, select {
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+input[disabled] {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.access-table {
+  grid-column: 1 / -1;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.3rem;
+}
+.access-table th,
+.access-table td {
+  border: 1px solid #e5e7eb;
+  padding: 0.4rem;
+  text-align: center;
+}
+.access-table th {
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.user-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.user-table th, .user-table td {
+  padding: 0.8rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+.user-table th {
+  background: #eff6ff;
+  color: #1e40af;
+}
+.user-table tbody tr:hover { background: #f9fafb; }
+
+.status.enabled {
+  background: #dcfce7;
+  color: #166534;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.status.disabled {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.pagination {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}

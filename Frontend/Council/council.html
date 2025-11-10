@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Local Council - Your Ideal</title>
+  <link rel="stylesheet" href="../assets/css/header.css">
+  <link rel="stylesheet" href="../assets/css/access-control.css">
+  <link rel="stylesheet" href="../assets/css/council.css">
+</head>
+<body>
+  <header id="mainHeader"></header>
+
+  <!-- Notifications (optional, can be removed if header.js handles them) -->
+  <div class="notifications" id="notifBox"></div>
+
+  <div class="main">
+    <div class="sidebar">
+      <input type="text" id="councilSearch" placeholder="Search">
+      <ul class="council-list" id="councilList"></ul>
+    </div>
+
+    <div class="content">
+      <div class="council-details" id="councilDetails">
+      </div>
+      <div class="create-form">
+        <h3>Create local council</h3>
+        <p>Enter local authority details</p>
+        <div class="form-group"><input id="newName" type="text" placeholder="Council Name"></div>
+        <div class="form-group"><input id="newAddress" type="text" placeholder="Address"></div>
+		<div class="form-group">
+			<input id="newCity" type="text" placeholder="City">
+			<input id="newPostcode" type="text" placeholder="Postcode">
+		</div>
+        <div><button id="createBtn" class="btn btn-council">Create Council</button></div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="../assets/js/council.js"></script>
+</body>
+</html>

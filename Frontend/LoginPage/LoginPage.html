@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Your Ideal</title>
+  <link rel="stylesheet" href="../assets/css/login.css">
+</head>
+<body>
+  <div class="login-container">
+    <!-- Logo -->
+    <div class="logo">
+      <img src="../images/logo.png" alt="Your Ideal Logo">
+      <h3>Sign in to Your Ideal</h3>
+    </div>
+
+    <!-- Login Form -->
+    <form class="login-form" id="loginForm">
+      <div class="input-group">
+        <input type="text" id="username" placeholder="Username or E-mail" required>
+      </div>
+      <div class="input-group">
+        <input type="password" id="password" placeholder="Password" required>
+        <img src="../images/eyeoffTrans.png" id="toggleEye" class="toggle-eye" alt="Toggle Password">
+      </div>
+      <button type="submit" class="login-btn">Login</button>
+      <p id="errorMsg" class="error-msg">Invalid username or password</p>
+    </form>
+  </div>
+
+  <script type="module" src="../assets/js/auth.js"></script>
+</body>
+</html>

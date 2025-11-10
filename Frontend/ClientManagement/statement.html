@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Client Statement - YI</title>
+	<link rel="stylesheet" href="statement.css">
+</head>
+<body>
+  <!-- Header -->
+	<header>
+		<img src="../../images/logo.png" alt="YourIdeal Logo" onclick="location.href='../../HomePage/homepage.html'">
+		<div class="right-menu">
+			<a href="#" class="logout"><img src="../../images/LogOut.png" onclick="location.href='../../LoginPage/LoginPage.html'"></a>
+			<div style="display:flex;align-items:center;gap:15px;">
+				<!-- Profile -->
+				<div class="profile">
+					<img src="../../images/profile.png" id="profileBtn" alt="Profile">
+					<div class="dropdown" id="profileBox">
+						<img src="../../images/profile.png" alt="Profile Pic">
+						<h4>taariqdb17</h4>
+						<p><b>User Name:</b> TAARIQ DAWOOD BUHARI</p>
+						<p><b>User Role:</b> SUPER ADMIN</p>
+					</div>
+				</div>
+				<!-- Hamburger -->
+				<div class="hamburger" id="hamburgerBtn">
+					<img src="../../images/GridmenuTrans.png" alt="Menu">
+				</div>
+			</div>
+		</div>  
+	</header>
+
+	<!-- Mobile Menu -->
+	<div class="mobile-menu" id="mobileMenu">
+		<a href="#" class="logout"><img src="../../images/LogOut.png" alt="Logout" onclick="location.href='../../LoginPage/LoginPage.html'"></a>  
+	</div>
+
+	<h2>Client Statement</h2>
+	<div class="back-container">
+		<button class="back-btn" onclick="window.history.back()">↩ Back</button>
+	</div>
+
+	<!-- Root container -->
+	<div id="statementRoot"></div>
+
+	<!-- Remove hardcoded pagination div -->
+	<script src="statement.js"></script>
+	<script src="../Services/services.js"></script>
+	<script src="../common/service-field.js"></script>
+</body>
+</html>

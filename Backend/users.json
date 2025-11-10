@@ -1,0 +1,122 @@
+[
+  {
+    "username": "tracy",
+    "password_hash": "$2b$12$rp9OKDhNLWLrCUUF88iZueOxiuEDkVwR3uJiaVfu4TQ1TY0gpYFxm",
+    "display_name": "Tracy Fell Smith",
+    "emp_id": "EMP-0001",
+    "role": "ADMIN",
+    "enabled": true,
+    "permissions": {
+      "council": {
+        "view": true,
+        "add": true,
+        "edit": true,
+        "delete": true
+      },
+      "client": {
+        "view": true,
+        "add": true,
+        "edit": true,
+        "delete": true
+      },
+      "service": {
+        "view": true,
+        "add": true,
+        "edit": true,
+        "delete": true
+      },
+      "statement": {
+        "view": true,
+        "add": true,
+        "edit": true,
+        "delete": true
+      },
+      "notes": {
+        "view": true,
+        "add": true,
+        "edit": true,
+        "delete": true
+      }
+    }
+  },
+  {
+    "username": "ashok",
+    "password_hash": "$2b$12$aKFP2SQK11BxJAd3DUbZFu.QheRCNA54KRLtePJchUKXbSd04.YFu",
+    "display_name": "Ashok Rajendran",
+    "emp_id": "EMP-0002",
+    "role": "STAFF",
+    "enabled": true,
+    "permissions": {
+      "council": {
+        "view": true,
+        "add": false,
+        "edit": false,
+        "delete": false
+      },
+      "client": {
+        "view": true,
+        "add": false,
+        "edit": false,
+        "delete": false
+      },
+      "service": {
+        "view": true,
+        "add": false,
+        "edit": false,
+        "delete": false
+      },
+      "statement": {
+        "view": true,
+        "add": false,
+        "edit": false,
+        "delete": false
+      },
+      "notes": {
+        "view": true,
+        "add": true,
+        "edit": true,
+        "delete": true
+      }
+    }
+  },
+  {
+    "username": "sameera",
+    "password_hash": "$2b$12$un7c9iK.sSTrAkFOsvDl5uP0ywDbqh.NwndoQq.mFx9nxrapKaAd6",
+    "display_name": "Sameera Shahabhudeen",
+    "emp_id": "EMP-0003",
+    "role": "STAFF",
+    "enabled": true,
+    "permissions": {
+      "council": {
+        "view": true,
+        "add": false,
+        "edit": false,
+        "delete": false
+      },
+      "client": {
+        "view": true,
+        "add": false,
+        "edit": false,
+        "delete": false
+      },
+      "service": {
+        "view": true,
+        "add": false,
+        "edit": false,
+        "delete": false
+      },
+      "statement": {
+        "view": true,
+        "add": true,
+        "edit": true,
+        "delete": true
+      },
+      "notes": {
+        "view": false,
+        "add": false,
+        "edit": false,
+        "delete": false
+      }
+    }
+  }
+]

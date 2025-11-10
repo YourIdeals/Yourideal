@@ -1,0 +1,130 @@
+/* Page shell */
+body { margin: 0; font-family: Arial, sans-serif; background-color: #f5f5f9; }
+
+/* Header comes from header.js, keep spacing consistent */
+#mainHeader { position: sticky; top: 0; z-index: 10; }
+
+/* Layout */
+.main { display: flex; height: calc(100vh - 70px); }
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background: #f2f2f6;
+  border-right: 1px solid #ccc;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Search stays fixed */
+.sidebar input {
+  width: 92%;
+  padding: 8px;
+  margin: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+/* Council list scrolls */
+.council-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(100vh - 180px);  /* ensures scroll area */
+  border-radius: 6px;
+}
+
+
+/* Thin modern scrollbar (Option A) */
+.council-list::-webkit-scrollbar {
+  width: 6px;
+}
+.council-list::-webkit-scrollbar-track {
+  background: #e8e8e8;
+  border-radius: 10px;
+}
+.council-list::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 10px;
+}
+
+/* Council list items */
+.council-list li {
+  padding: 10px;
+  border-radius: 6px;
+  margin: 6px 8px;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #eee;
+}
+.council-list li.active {
+  background: #e8f2ff;
+  border-color: #cfe3ff;
+}
+
+
+/* Content */
+.content { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+
+.council-details, .create-form {
+  background: #ffffff;
+  padding: 18px 20px;
+  border-radius: 10px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
+
+.council-details h3, .create-form h3 { margin: 0 0 12px; }
+
+.detail-row { margin-bottom: 10px; font-size: 14px; }
+.detail-row b { display: inline-block; width: 140px; color: #444; }
+
+.buttons { display: flex; gap: 10px; margin-top: 12px; }
+.buttons button, .buttons select {
+  padding: 7px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+.buttons .delete { background: #f44336; color: white; }
+.buttons .edit { background: #2196f3; color: white; }
+.buttons .dropdown { background: #666; color: white; }
+
+/* Create Form */
+.create-form h3 { color: #4b3db6; }
+.form-group { margin-bottom: 12px; display: flex; gap: 10px; }
+.form-group input {
+  flex: 1;
+  padding: 9px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+.create-form button {
+  background: #555;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ============================================
+   ACCESS CONTROL VISUALS
+   ============================================ */
+.btn-council[disabled],
+.btn-council.disabled-control {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  background-color: #ccc !important;
+  color: #666 !important;
+}
+
+
+/* Responsive */
+@media (max-width: 900px) {
+  .main { flex-direction: column; height: auto; }
+  .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid #ccc; }
+}

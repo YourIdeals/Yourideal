@@ -1,0 +1,49 @@
+/* ============================================
+   access-control.css — global restricted style
+   ============================================ */
+
+/* Disabled buttons / links */
+.disabled-control,
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  filter: grayscale(50%);
+}
+
+/* Locked navigation link */
+nav a[style*="pointer-events: none"],
+nav .locked-link {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+/* Tooltip effect for locked links */
+nav a[title="Access denied"]:hover::after {
+  content: "🚫 Access denied";
+  position: absolute;
+  background: #222;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  transform: translateY(-25px);
+  white-space: nowrap;
+}
+
+/* Notes editor restriction */
+#notesEditor.disabled-control {
+  background-color: #f8f8f8;
+  border: 1px solid #ccc;
+  color: #888;
+}
+
+/* Optional — fade table rows that can’t be edited */
+tr.disabled-control td {
+  background-color: #f5f5f5;
+  color: #aaa;
+}

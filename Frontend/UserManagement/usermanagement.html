@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Management | Your Ideal</title>
+  <link rel="stylesheet" href="../assets/css/header.css" />
+  <link rel="stylesheet" href="../assets/css/usermanagement.css" />
+  <link rel="stylesheet" href="../assets/css/row-pagination.css" />
+</head>
+<body>
+  <!-- Header injected dynamically -->
+  <main class="user-management-container">
+    <section class="user-header">
+      <h2>👤 User Management</h2>
+      <button id="addUserBtn" class="btn-primary">➕ Add New User</button>
+    </section>
+
+    <!-- ADD / EDIT FORM -->
+    <section id="userFormSection" class="hidden">
+      <h3 id="formTitle">Add New Employee</h3>
+      <form id="userForm">
+        <div class="form-grid">
+          <label>Employee Name</label>
+          <input type="text" id="empName" required />
+
+          <label>Employee ID</label>
+          <input type="text" id="empId" required />
+
+          <label>Username</label>
+          <input type="text" id="username" required />
+
+          <label>Password</label>
+          <input type="password" id="password" required />
+
+          <label>Access Rights</label>
+          <table class="access-table">
+            <thead>
+              <tr>
+                <th>Section</th>
+                <th>View</th>
+                <th>Add</th>
+                <th>Edit</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Council</td>
+                <td><input type="checkbox" name="council_view"></td>
+                <td><input type="checkbox" name="council_add"></td>
+                <td><input type="checkbox" name="council_edit"></td>
+                <td><input type="checkbox" name="council_delete"></td>
+              </tr>
+              <tr>
+                <td>Client Management</td>
+                <td><input type="checkbox" name="client_view"></td>
+                <td><input type="checkbox" name="client_add"></td>
+                <td><input type="checkbox" name="client_edit"></td>
+                <td><input type="checkbox" name="client_delete"></td>
+              </tr>
+              <tr>
+                <td>Services</td>
+                <td><input type="checkbox" name="service_view"></td>
+                <td><input type="checkbox" name="service_add"></td>
+                <td><input type="checkbox" name="service_edit"></td>
+                <td><input type="checkbox" name="service_delete"></td>
+              </tr>
+              <tr>
+                <td>Statements</td>
+                <td><input type="checkbox" name="statement_view"></td>
+                <td><input type="checkbox" name="statement_add"></td>
+                <td><input type="checkbox" name="statement_edit"></td>
+                <td><input type="checkbox" name="statement_delete"></td>
+              </tr>
+              <tr>
+                <td>Notes</td>
+                <td><input type="checkbox" name="notes_view"></td>
+                <td><input type="checkbox" name="notes_add"></td>
+                <td><input type="checkbox" name="notes_edit"></td>
+                <td><input type="checkbox" name="notes_delete"></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <label>Status</label>
+          <select id="status">
+            <option value="enabled">Enabled</option>
+            <option value="disabled">Disabled</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="saveUserBtn" class="btn-primary">💾 Save</button>
+          <button type="button" id="cancelUserBtn" class="btn-secondary">❌ Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- USER TABLE -->
+    <section class="user-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Employee ID</th>
+            <th>Employee Name</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+      </table>
+      <div id="pagination" class="pagination"></div>
+    </section>
+  </main>
+
+  <script type="module" src="../assets/js/usermanagement.js"></script>
+</body>
+</html>

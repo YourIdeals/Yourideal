@@ -1,0 +1,335 @@
+/* ===========================
+   BASIC LAYOUT
+=========================== */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+}
+
+.profile-container {
+  max-width: 1000px;
+  margin: 30px auto;
+  background: white;
+  padding: 20px 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title-row h2 {
+  margin: 0;
+  color: #4b3db6;
+}
+
+.back-btn {
+  cursor: pointer;
+  font-size: 15px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #eee;
+}
+
+/* ===========================
+   GRID FORM
+=========================== */
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 30px;
+}
+
+.details-grid .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.details-grid label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #444;
+}
+
+.details-grid input,
+.details-grid select {
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fafafa;
+  transition: all 0.2s ease;
+}
+
+.details-grid input:focus,
+.details-grid select:focus {
+  background: #fff;
+  border-color: #4b3db6;
+  box-shadow: 0 0 0 3px rgba(75, 61, 182, 0.1);
+  outline: none;
+}
+
+.details-grid input[disabled],
+.details-grid select[disabled] {
+  background-color: #eee;
+  cursor: not-allowed;
+}
+
+/* ===========================
+   SECTION HEADERS
+=========================== */
+.section-header {
+  grid-column: span 2;
+  margin-top: 20px;
+  font-weight: bold;
+  font-size: 16px;
+  color: #4b3db6;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 6px;
+}
+
+/* ===========================
+   STATUS BADGE
+=========================== */
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: center;
+}
+
+.status-badge.active {
+  background-color: #e0f5e0;
+  color: #28a745;
+}
+
+.status-badge.inactive {
+  background-color: #fbe4e4;
+  color: #dc3545;
+}
+
+/* ===========================
+   DISABILITY SECTION
+=========================== */
+.disability-section {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 15px;
+  background: #fafafa;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.disability-section label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: normal;
+}
+
+.disability-section input[type="checkbox"] {
+  transform: scale(1.1);
+  cursor: pointer;
+}
+
+.disability-sub {
+  margin-left: 25px;
+  padding-left: 12px;
+  border-left: 2px solid #e0e0e0;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.disability-sub label {
+  font-weight: normal;
+  font-size: 14px;
+}
+
+/* ===========================
+   OPTIONAL FIELDS
+=========================== */
+.optional-container {
+  grid-column: span 2;
+  display: grid;
+  gap: 10px;
+}
+
+.optional-row {
+  display: flex;
+  gap: 8px;
+}
+
+.optional-row input {
+  flex: 1;
+}
+
+.optional-row .remove-opt {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#addOptionalBtn {
+  margin-top: 5px;
+  padding: 6px 10px;
+  background: #6a5acd;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ===========================
+   BUTTONS
+=========================== */
+.button-group {
+  margin-top: 25px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.btn.edit {
+  background-color: #6a5acd;
+  color: white;
+}
+
+.btn.edit:hover {
+  background-color: #5848c2;
+}
+
+.btn.save {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn.save:hover {
+  background-color: #218838;
+}
+
+.btn.cancel {
+  background: #ccc;
+}
+
+/* ============================================
+   🌟 FORM GRID (shared by client + service)
+   ============================================ */
+
+.add-client-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.details-grid,
+#addServiceForm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 15px 25px;
+  align-items: start;
+}
+
+/* Label + input box uniform style */
+.form-group,
+.form-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label,
+.form-row label {
+  font-weight: 600;
+  color: #004080;
+  margin-bottom: 4px;
+}
+
+.form-group input,
+.form-group select,
+.form-row input,
+.form-row select,
+textarea {
+  padding: 6px 8px;
+  border: 1px solid #c0c0c0;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-row input:focus,
+.form-row select:focus {
+  border-color: #0070C0;
+  outline: none;
+}
+
+/* Uniform section headers */
+.section-header {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #0070C0;
+  border-bottom: 2px solid #0070C0;
+  grid-column: 1 / -1;
+  margin-top: 25px;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+}
+
+/* Optional fields container */
+#clientOptionalFields,
+#serviceOptionalFields {
+  grid-column: 1 / -1;
+  background: #f9f9f9;
+  border: 1px dashed #bbb;
+  padding: 10px 12px;
+  border-radius: 4px;
+}
+
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+@media (max-width: 768px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-header {
+    grid-column: span 1;
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .button-group .btn {
+    width: 100%;
+  }
+}

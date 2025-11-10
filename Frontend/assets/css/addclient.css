@@ -1,0 +1,48 @@
+/* assets/css/addclient.css */
+
+.yi-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: none; align-items: center; justify-content: center; z-index: 1000;
+}
+.yi-modal {
+  background: #fff; width: min(980px, 96vw); max-height: 92vh;
+  border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.yi-modal header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid #eee; font-weight: 600;
+}
+.yi-modal main { padding: 18px; overflow: auto; }
+.yi-modal footer {
+  padding: 12px 18px; border-top: 1px solid #eee; display: flex; gap: 10px; justify-content: flex-end;
+}
+
+/* ============================================
+   ACCESS CONTROL INTEGRATION (OPTIONAL ENHANCEMENT)
+   ============================================ */
+
+/* When access-control.js disables elements */
+.btn[disabled],
+.disabled-control {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Visually mark protected Save buttons if locked */
+.btn-client.disabled-control,
+.btn-service.disabled-control {
+  background-color: #ccc !important;
+  color: #666 !important;
+}
+
+.btn { padding: 10px 14px; border-radius: 8px; border: 0; cursor: pointer; }
+.btn.save { background:#22c55e; color:#fff; }
+.btn.edit { background:#6b5bfd; color:#fff; }
+.btn.secondary { background:#f2f3f5; color:#111; }
+.details-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+.details-grid .form-group { display:flex; flex-direction:column; }
+.details-grid .form-group input,
+.details-grid .form-group select { padding:10px; border:1px solid #ddd; border-radius:6px; }
+.section-header { margin: 24px 0 8px; font-weight: 700; border-bottom:1px solid #eee; padding-bottom:6px; }

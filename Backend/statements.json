@@ -1,0 +1,168 @@
+{
+  "SV-0000045562-0001": [
+    {
+      "date": "01/09/2024",
+      "description": "Managed Account and Payroll Setup Cost",
+      "credit": 0.0,
+      "debit": 102.0,
+      "enteredBy": "System",
+      "id": "6221d310-9daf-47b1-91ac-829436709345"
+    },
+    {
+      "date": "01/09/2024",
+      "description": "Pension Setup Fee",
+      "credit": 0.0,
+      "debit": 22.0,
+      "enteredBy": "System",
+      "id": "5322bfb1-35eb-4658-94f6-7a2dbc702333"
+    },
+    {
+      "date": "01/09/2024",
+      "description": "Annual Pension Fee 2024-2025",
+      "credit": 0.0,
+      "debit": 27.0,
+      "enteredBy": "System",
+      "id": "bc7db72b-c533-4d1d-b96e-b6d07415f6e2"
+    },
+    {
+      "date": "01/09/2024",
+      "description": "Annual Year End Fee 2024-2025",
+      "credit": 0.0,
+      "debit": 22.0,
+      "enteredBy": "System",
+      "id": "74e84864-7fda-4c28-b15b-bc19ea7ee956"
+    },
+    {
+      "date": "2024-09-01",
+      "description": "Monthly Fee - Sep 24",
+      "credit": 0.0,
+      "debit": 37.5,
+      "enteredBy": "System",
+      "id": "02f94265-cacf-4f73-86b6-aa9d1a9655f7"
+    },
+    {
+      "date": "2024-10-01",
+      "description": "Monthly Fee - Oct 24",
+      "credit": 0.0,
+      "debit": 37.5,
+      "enteredBy": "System",
+      "id": "315966da-3d66-40f2-acf3-85f1afb3f846"
+    },
+    {
+      "date": "2024-11-01",
+      "description": "Monthly Fee - Nov 24",
+      "credit": 0.0,
+      "debit": 37.5,
+      "enteredBy": "System",
+      "id": "88315f56-841c-4730-b459-5e88e21fbda6"
+    },
+    {
+      "date": "2024-12-01",
+      "description": "Monthly Fee - Dec 24",
+      "credit": 0.0,
+      "debit": 37.5,
+      "enteredBy": "System",
+      "id": "d2591856-4c91-4b27-b6ce-4142c72fd160"
+    },
+    {
+      "date": "2025-06-01",
+      "description": "Monthly Fee - Jun 25",
+      "credit": 0.0,
+      "debit": 37.5,
+      "enteredBy": "System",
+      "id": "bebcd727-8035-474f-bd67-b1370ce81bfd"
+    },
+    {
+      "date": "2025-07-01",
+      "description": "Monthly Fee - Jul 25",
+      "credit": 0.0,
+      "debit": 37.5,
+      "enteredBy": "System",
+      "id": "f9c63e98-8ccc-45fc-aed9-2faf0ea66002"
+    },
+    {
+      "date": "2025-08-01",
+      "description": "Monthly Fee - Aug 25",
+      "credit": 0.0,
+      "debit": 37.5,
+      "enteredBy": "System",
+      "id": "fb2588bb-59ea-425b-831e-53fd0aaab9f4"
+    },
+    {
+      "date": "2025-09-01",
+      "description": "Monthly Fee - Sep 25",
+      "credit": 0.0,
+      "debit": 37.5,
+      "enteredBy": "System",
+      "id": "03eb74a1-0853-40b0-ac5a-857bc7899fc2"
+    },
+    {
+      "date": "2025-10-01",
+      "description": "Monthly Fee - Oct 25",
+      "credit": 0.0,
+      "debit": 37.5,
+      "enteredBy": "System",
+      "id": "e18abcf6-15b8-48e0-b9ad-bbb81985b2ed"
+    },
+    {
+      "date": "2024-10-30",
+      "description": "NWA Remittance From 30-Sept-24 to 06-Oct-24",
+      "credit": 368.5,
+      "debit": 0,
+      "enteredBy": "taariq",
+      "id": "d91bd0c9-9970-4d20-b88c-4d674612860a"
+    },
+    {
+      "date": "2024-11-04",
+      "description": "Adult Quarterly Q2",
+      "credit": 0,
+      "debit": 80,
+      "enteredBy": "Sameera Shahabhudeen",
+      "id": "75611f43-bc31-4e17-907b-24f3cdb99a27"
+    }
+  ],
+  "SV-R0000045562-0001": [
+    {
+      "date": "24/10/2025",
+      "description": "Managed Account Setup Cost",
+      "credit": 0.0,
+      "debit": 101.45,
+      "enteredBy": "System",
+      "id": "260ca779-1caa-472f-b569-0b8af8a48bd3"
+    }
+  ],
+  "SV-R0000045562-0002": [
+    {
+      "date": "01/01/2026",
+      "description": "Payroll Setup Cost",
+      "credit": 0.0,
+      "debit": 101.5,
+      "enteredBy": "System",
+      "id": "3a4bf08d-0ba5-475a-ae30-28ddd6528f4a"
+    },
+    {
+      "date": "01/01/2026",
+      "description": "Pension Setup Fee",
+      "credit": 0.0,
+      "debit": 22.0,
+      "enteredBy": "System",
+      "id": "98814d1e-d807-4003-b667-b3220c53fa7b"
+    },
+    {
+      "date": "01/01/2026",
+      "description": "Annual Pension Fee 2026-2027",
+      "credit": 0.0,
+      "debit": 22.0,
+      "enteredBy": "System",
+      "id": "afb1cec6-2357-4354-ba10-6acfed0c6a79"
+    },
+    {
+      "date": "01/01/2026",
+      "description": "Annual Year End Fee 2026-2027",
+      "credit": 0.0,
+      "debit": 27.0,
+      "enteredBy": "System",
+      "id": "e235f3b2-7cea-4162-b667-5b3a9859874b"
+    }
+  ]
+}
