@@ -19,7 +19,7 @@ import {
   genderOptions,
   kinOptions,
   ethnicityOptions,
-} from "./utils/clientSchema.js";
+} from "./utils/clientschema.js";
 import {
   renderDisabilitySection,
   bindDisabilityEvents,
