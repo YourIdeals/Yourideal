@@ -21,8 +21,10 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 # SQLAlchemy Async
 from sqlalchemy import (
-    Column, String, Integer, Boolean, Date, DateTime, Text, Numeric, ForeignKey, select, func
+    Column, String, Integer, Boolean, Date, DateTime, Text, Numeric, ForeignKey,
+    select, func, and_
 )
+
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from sqlalchemy.dialects.postgresql import JSONB
@@ -248,6 +250,74 @@ def _check_password(user: Dict, plain_password: str) -> bool:
         return bcrypt.checkpw(plain_password.encode("utf-8"), stored_hash)
     except Exception:
         return False
+
+async def ensure_monthly_debits(db: AsyncSession):
+    """
+    Ensures that every active service has a monthly fee statement
+    for each month between its startDate and endDate (or current date).
+    """
+    print("🔁 Running monthly fee auto-debit check...")
+
+    today = date.today()
+    res = await db.execute(select(Service))
+    services = res.scalars().all()
+    created = 0
+
+    for svc in services:
+        if not svc.monthlyFee or svc.monthlyFee == 0:
+            continue
+
+        start = svc.startDate or today
+        end = svc.endDate or today
+        if end < start:
+            continue
+
+        # iterate months from start → end/current
+        year, month = start.year, start.month
+        while (year < end.year) or (year == end.year and month <= end.month):
+            month_date = date(year, month, 1)
+
+            # skip future months
+            if month_date > today:
+                break
+
+            # check if monthly fee already exists for this month
+            res2 = await db.execute(
+                select(func.count())
+                .select_from(Statement)
+                .where(
+                    and_(
+                        Statement.serviceId == svc.serviceId,
+                        func.date_part("year", Statement.date) == year,
+                        func.date_part("month", Statement.date) == month,
+                        Statement.description.ilike("%monthly fee%"),
+                    )
+                )
+            )
+            already = res2.scalar_one()
+            if not already:
+                stmt = Statement(
+                    id=str(uuid.uuid4()),
+                    serviceId=svc.serviceId,
+                    date=month_date,
+                    description=f"Monthly Fee - {calendar.month_abbr[month]} {year}",
+                    credit=0,
+                    debit=float(svc.monthlyFee),
+                    enteredBy="System",
+                    created_at=datetime.utcnow(),
+                )
+                db.add(stmt)
+                created += 1
+
+            # next month
+            if month == 12:
+                year += 1
+                month = 1
+            else:
+                month += 1
+
+    await db.commit()
+    print(f"✅ Auto-debit complete: {created} new monthly entries added.")
 
 # -------------------------------------------------------------------
 # LOGGING & NOTIFICATIONS (DB)
@@ -1498,5 +1568,8 @@ async def on_startup():
     SUPER_ADMINS = _load_super_admins_from_env()
     if not SUPER_ADMINS:
         print("⚠ No SUPER ADMINS configured in .env (SUPERADMINS=[...]); relying on DB users only.")
+    # ✅ Auto-run monthly debit generator
+    async with AsyncSessionLocal() as db:
+        await ensure_monthly_debits(db)
 
 app.include_router(api)
