@@ -4,7 +4,7 @@
 // Full CRUD + Statement API + Secure CORS + Normalization
 // ============================================
 
-const BASE_URL = "http://127.0.0.1:8000/api/services"; // ← Adjust if backend runs on another port
+const BASE_URL = "http://13.40.179.19:8000/api/services"; // ← Adjust if backend runs on another port
 
 // --------------------
 // Auth & Helpers
