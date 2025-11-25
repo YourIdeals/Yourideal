@@ -1,6 +1,8 @@
 // assets/js/utils/clientSchema.js
 
-// ✅ Default structure for a client
+// =======================================
+// DEFAULT CLIENT STRUCTURE
+// =======================================
 export const clientDefault = {
   id: "",
   title: "",
@@ -9,24 +11,37 @@ export const clientDefault = {
   dob: "",
   gender: "",
   status: "Active",
+
+  // Contact (NO address here anymore)
   phone: "",
   email: "",
-  address: "",
+
+  // Council
   councilId: null,
+
+  // Disabilities
   disabilities: ["None"],
-  kin_name: "",
-  kin_relation: "",
-  kin_relation_other: "",
-  kin_address: "",
-  kin_email: "",
+
+  // These are removed: kin_name, kin_relation, kin_address, kin_email
+  // Because kin history is stored in client_kins table
+
+  // Ethnicity & language
   ethnicity_type: "",
   ethnicity: "",
   language: "",
+
   optional_fields: [],
+
+  // Who created the client
+  created_by: "",
+
   profile_img: "../images/profile.png"
 };
 
-// ✅ Field groupings for rendering sections
+
+// =======================================
+// FIELD GROUPS (for rendering sections)
+// =======================================
 export const fieldGroups = {
   "Personal Information": [
     "title",
@@ -37,34 +52,48 @@ export const fieldGroups = {
     "gender",
     "status"
   ],
+
   "Contact Details": [
     "phone",
-    "email",
-    "address"
+    "email"
+    // address removed, handled separately
   ],
+
   "Disability Information": [
     "disabilities"
   ],
-  "Kin Information": [
-    "kin_name",
-    "kin_relation",
-    "kin_address",
-    "kin_email"
-  ],
+
+  // Kin removed because handled separately through client_kins
+
   "Other Information": [
     "ethnicity_type",
     "ethnicity",
     "language"
   ],
+
   "Optional Fields": [
     "optional_fields"
   ]
 };
 
-// ✅ Dropdown options
+
+// =======================================
+// DROPDOWN OPTIONS
+// =======================================
 export const titleOptions = ["Dr.", "Master.", "Mr.", "Mrs.", "Ms.", "Miss."];
+
 export const genderOptions = ["Male", "Female", "Other"];
-export const kinOptions = ["Father", "Mother", "Brother", "Sister", "Husband", "Wife", "Self", "Other"];
+
+export const kinOptions = [
+  "Father",
+  "Mother",
+  "Brother",
+  "Sister",
+  "Husband",
+  "Wife",
+  "Self",
+  "Other"
+];
 
 export const ethnicityOptions = {
   "White": [

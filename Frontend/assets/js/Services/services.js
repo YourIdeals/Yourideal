@@ -73,31 +73,7 @@ function ensureWorkspaceShell() {
       </section>
 
       <section id="statementRoot"></section>
-    </div>
-
-    <!-- Notes Modal -->
-    <div id="notesModal" class="modal" aria-hidden="true">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Service Notes</h3>
-          <button id="closeNoteBtn" class="modal-close-btn" aria-label="Close">✖</button>
-        </div>
-
-        <div id="notesDisplay">
-          <div id="notesText">-</div>
-          <div class="notes-actions" style="margin-top:10px;">
-            <button id="editNoteBtn" class="btn-notes">Edit</button>
-          </div>
-        </div>
-
-        <div id="notesEdit" style="display:none;">
-          <textarea id="notesArea" placeholder="Type notes..."></textarea>
-          <div class="notes-actions">
-            <button id="saveNoteBtn" class="btn-save btn-notes">Save</button>
-            <button id="cancelNoteBtn" class="btn-cancel">Cancel</button>
-          </div>
-        </div>
-      </div>
+	  <section id="notesRoot" style="display:none;"></section>
     </div>
   `;
   document.body.appendChild(shell);
@@ -152,7 +128,6 @@ export async function renderServicePage(clientId) {
     agency: Array.isArray(s.agency) ? s.agency : [],
     pa: Array.isArray(s.pa) ? s.pa : [],
     optional: Array.isArray(s.optional) ? s.optional : [],
-    notes: s.notes || "",
   });
 
   function formatDateToUK(date) {
@@ -249,8 +224,30 @@ export async function renderServicePage(clientId) {
       noteBtn.className = "note-btn btn-notes";
       noteBtn.textContent = "Note";
       noteBtn.onclick = () => {
-        requirePermission("notes", "view", () => openNotes(data));
-      };
+        requirePermission("notes", "view", () => {
+		  const serviceInfo = shell.querySelector(".service-info");
+		  const detailsSection = shell.querySelector("#serviceDetailsSection");
+		  const statementRoot = shell.querySelector("#statementRoot");
+          const notesRoot = shell.querySelector("#notesRoot");
+		  if (serviceInfo) serviceInfo.style.display = "none";
+		  if (detailsSection) detailsSection.style.display = "none";
+		  if (statementRoot) statementRoot.style.display = "none"
+          if (notesRoot) {
+            notesRoot.style.display = "block";
+            notesRoot.innerHTML = ""; // clear previous
+            openNotes({
+              serviceId: data.serviceId,
+              clientId: data.clientId,
+              root: notesRoot,
+              onBack: () => {
+                // Called from inside notes.js when user clicks Back
+                notesRoot.style.display = "none";
+                serviceInfo.style.display = "block";
+              },
+            });
+          }
+        });
+      }
       actionCell.appendChild(noteBtn);
 
       // ✅ Delete Button (service.delete)

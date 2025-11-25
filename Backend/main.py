@@ -4,7 +4,7 @@ import os, json, uuid, calendar, bcrypt
 from datetime import datetime, date
 from typing import Optional, Dict, List
 
-from fastapi import FastAPI, HTTPException, Header, APIRouter, Depends, Request
+from fastapi import FastAPI, HTTPException, Header, APIRouter, Depends, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
@@ -21,10 +21,9 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 # SQLAlchemy Async
 from sqlalchemy import (
-    Column, String, Integer, Boolean, Date, DateTime, Text, Numeric, ForeignKey,
-    select, func, and_
+    Column, String, Integer, Date, Boolean, DateTime, Text, text, Numeric,
+    ForeignKey, func, and_, update, select, delete
 )
-
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from sqlalchemy.dialects.postgresql import JSONB
@@ -32,7 +31,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from fastapi.responses import JSONResponse
 import traceback
-
+from fastapi.responses import Response
+import io, csv
 
 # -------------------------------------------------------------------
 # App & CORS
@@ -56,12 +56,7 @@ api = APIRouter(prefix="/api")
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_async_engine(
-    DATABASE_URL,
-    echo=False,
-    future=True,
-    connect_args={"server_settings": {"search_path": "yi,public"}}  # ✅ this line adds the schema
-)
+engine = create_async_engine(DATABASE_URL, echo=False, future=True)
 AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 Base = declarative_base()
 
@@ -82,7 +77,6 @@ class User(Base):
     role = Column(String, nullable=False, default="STAFF")
     enabled = Column(Boolean, nullable=False, default=True)
     permissions = Column(JSONB, nullable=True)  # same JSON as users.json
-
 
 class Council(Base):
     __tablename__ = "councils"
@@ -106,21 +100,45 @@ class Client(Base):
     councilId = Column(Integer, ForeignKey("councils.id", ondelete="SET NULL"), nullable=True)
     phone = Column(String, nullable=True)
     email = Column(String, nullable=True)
-    address = Column(Text, nullable=True)
     disabilities = Column(JSONB, nullable=True)      # list
-    kin_name = Column(String, nullable=True)
-    kin_relation = Column(String, nullable=True)
-    kin_relation_other = Column(String, nullable=True)
-    kin_address = Column(Text, nullable=True)
-    kin_email = Column(String, nullable=True)
     ethnicity_type = Column(String, nullable=True)
     ethnicity = Column(String, nullable=True)
     language = Column(String, nullable=True)
     status = Column(String, nullable=True)
     optional_fields = Column(JSONB, nullable=True)   # list
     profileImg = Column(String, nullable=True)
+    created_by = Column(String, nullable=True)
+
+class ClientAddress(Base):
+    __tablename__ = "client_address"  # ✅ fixed
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    client_id = Column(String, ForeignKey("clients.id", ondelete="CASCADE"))
+    house_no = Column(String)
+    street = Column(String)
+    city = Column(String)
+    country = Column(String)
+    postcode = Column(String)
+    is_current = Column(Boolean, default=True)  # ✅ removed stray comma
+    created_by = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class ClientKin(Base):
+    __tablename__ = "client_kin"  # ✅ fixed
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    client_id = Column(String, ForeignKey("clients.id", ondelete="CASCADE"))  # ✅ fixed extra ]
+    kin_name = Column(String)
+    kin_relationship = Column(String)
+    house_no = Column(String)
+    street = Column(String)
+    city = Column(String)
+    country = Column(String)
+    postcode = Column(String)
+    email = Column(String)
+    is_current = Column(Boolean, default=True)  # ✅ removed stray comma
+    created_by = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
 class Service(Base):
     __tablename__ = "services"
     # exact camelCase PK
@@ -147,8 +165,7 @@ class Service(Base):
     agency = Column(JSONB, nullable=True)    # list
     pa = Column(JSONB, nullable=True)        # list
     optional = Column(JSONB, nullable=True)  # list
-    notes = Column(Text, nullable=True)
-
+    created_by = Column(String, nullable=True)
 
 class Statement(Base):
     __tablename__ = "statements"
@@ -161,6 +178,16 @@ class Statement(Base):
     enteredBy = Column("enteredBy", String)  # ✅ exact field name retained
     created_at = Column(DateTime, default=datetime.utcnow)
 
+class ServiceNote(Base):
+    __tablename__ = "notes"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    service_id = Column(String, ForeignKey("services.serviceId", ondelete="CASCADE"), nullable=False)
+    note_date = Column(Date, nullable=False)
+    description = Column(Text, nullable=False)
+    created_by = Column(String, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    
 class Notification(Base):
     __tablename__ = "notifications"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)  # UUID string
@@ -169,6 +196,19 @@ class Notification(Base):
     category = Column(String, nullable=True)
     timestamp = Column(DateTime, nullable=True)
 
+# -----------------------------
+# Pydantic Models for Notes API
+# -----------------------------
+class NoteCreate(BaseModel):
+    note_date: date
+    description: str
+    created_by: str
+
+class NoteUpdate(BaseModel):
+    note_date: date | None = None
+    description: str | None = None
+    created_by: str | None = None
+    
 # -------------------------------------------------------------------
 # SUPER ADMINS from .env (in addition to DB users)
 # -------------------------------------------------------------------
@@ -526,11 +566,8 @@ async def delete_council(cid: int, request: Request, db: AsyncSession = Depends(
     return {"message": "Council deleted"}
 
 # -------------------------------------------------------------------
-# CLIENTS
+# CLIENT HELPERS
 # -------------------------------------------------------------------
-def _fmt_date_ddmmyyyy(d: Optional[date]) -> str:
-    return d.strftime("%d/%m/%Y") if d else ""
-
 def _parse_date_any(s: Optional[str]) -> Optional[date]:
     if not s:
         return None
@@ -541,53 +578,378 @@ def _parse_date_any(s: Optional[str]) -> Optional[date]:
             pass
     return None
 
+
+def _format_address_parts(house_no: Optional[str], street: Optional[str],
+                          city: Optional[str], country: Optional[str],
+                          postcode: Optional[str]) -> str:
+    parts = [house_no, street, city, country, postcode]
+    parts = [p for p in parts if p]
+    return ", ".join(parts)
+
+
+async def _get_latest_address(db: AsyncSession, client_id: str) -> Optional[ClientAddress]:
+    res = await db.execute(
+        select(ClientAddress)
+        .where(ClientAddress.client_id == client_id)
+        .order_by(ClientAddress.created_at.desc())
+        .limit(1)
+    )
+    return res.scalars().first()
+
+
+async def _get_latest_kin(db: AsyncSession, client_id: str) -> Optional[ClientKin]:
+    res = await db.execute(
+        select(ClientKin)
+        .where(ClientKin.client_id == client_id)
+        .order_by(ClientKin.created_at.desc())
+        .limit(1)
+    )
+    return res.scalars().first()
+
+
+async def _client_to_json(db: AsyncSession, c: Client) -> Dict:
+    council = await db.get(Council, c.councilId) if c.councilId else None
+    addr = await _get_latest_address(db, c.id)
+    kin = await _get_latest_kin(db, c.id)
+
+    address_str = _format_address_parts(
+        getattr(addr, "house_no", None),
+        getattr(addr, "street", None),
+        getattr(addr, "city", None),
+        getattr(addr, "country", None),
+        getattr(addr, "postcode", None),
+    ) if addr else ""
+
+    kin_address_str = _format_address_parts(
+        getattr(kin, "house_no", None),
+        getattr(kin, "street", None),
+        getattr(kin, "city", None),
+        getattr(kin, "country", None),
+        getattr(kin, "postcode", None),
+    ) if kin else ""
+
+    return {
+        "id": c.id,
+        "title": c.title,
+        "first_name": c.first_name,
+        "last_name": c.last_name,
+        "dob": c.dob.isoformat() if c.dob else None,
+        "gender": c.gender,
+        "councilId": c.councilId,
+        "phone": c.phone,
+        "email": c.email,
+        "address": address_str,                 # computed latest address
+        "disabilities": c.disabilities or [],
+        "kin_name": kin.kin_name if kin else None,
+        "kin_relation": kin.kin_relationship if kin else None,
+        "kin_relation_other": None,            # handled by frontend via free-text relationship
+        "kin_address": kin_address_str,
+        "kin_email": kin.email if kin else None,
+        "ethnicity_type": c.ethnicity_type,
+        "ethnicity": c.ethnicity,
+        "language": c.language,
+        "status": c.status,
+        "optional_fields": c.optional_fields or [],
+        "profileImg": c.profileImg or "../images/profile.png",
+        "council": (council.name if council else "Unknown"),
+        "created_by": c.created_by,
+    }
+
+# -------------------------------------------------------------------
+# CLIENT ROUTES
+# -------------------------------------------------------------------
 @api.get("/clients")
 async def get_clients(db: AsyncSession = Depends(get_db)):
     res = await db.execute(select(Client))
     rows = res.scalars().all()
-    # fetch councils for names
-    councils = {c.id: c.name for c in (await db.execute(select(Council))).scalars().all()}
     out = []
     for c in rows:
-        out.append({
-            "id": c.id, "title": c.title, "first_name": c.first_name, "last_name": c.last_name,
-            "dob": c.dob.isoformat() if c.dob else None,
-            "gender": c.gender, "councilId": c.councilId, "phone": c.phone, "email": c.email,
-            "address": c.address, "disabilities": c.disabilities or [],
-            "kin_name": c.kin_name, "kin_relation": c.kin_relation, "kin_relation_other": c.kin_relation_other,
-            "kin_address": c.kin_address, "kin_email": c.kin_email,
-            "ethnicity_type": c.ethnicity_type, "ethnicity": c.ethnicity, "language": c.language,
-            "status": c.status, "optional_fields": c.optional_fields or [],
-            "profileImg": c.profileImg or "../images/profile.png",
-            "council": councils.get(c.councilId, "Unknown")
-        })
+        out.append(await _client_to_json(db, c))
     return out
+
 
 @api.get("/clients/{client_id}")
 async def get_client_by_id(client_id: str, db: AsyncSession = Depends(get_db)):
     c = await db.get(Client, client_id)
     if not c:
         raise HTTPException(status_code=404, detail="Client not found")
-    council = await db.get(Council, c.councilId) if c.councilId else None
+    return await _client_to_json(db, c)
+
+
+# ========= Addresses (All) =========
+@api.get("/clients/{client_id}/addresses")
+async def get_client_addresses(client_id: str, db: AsyncSession = Depends(get_db)):
+    res = await db.execute(
+        select(ClientAddress)
+        .where(ClientAddress.client_id == client_id)
+        .order_by(ClientAddress.created_at.desc())
+    )
+    rows = res.scalars().all()
+    return [
+        {
+            "id": str(a.id),
+            "client_id": a.client_id,
+            "house_no": a.house_no,
+            "street": a.street,
+            "city": a.city,
+            "country": a.country,
+            "postcode": a.postcode,
+            "is_current": a.is_current,
+            "created_by": a.created_by,
+            "created_at": a.created_at.isoformat(timespec="seconds") if a.created_at else None,
+        }
+        for a in rows
+    ]
+
+
+# ========= Current / History Addresses =========
+@api.get("/clients/{client_id}/addresses/current")
+async def get_current_address(client_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(ClientAddress)
+        .where(ClientAddress.client_id == client_id)
+        .where(ClientAddress.is_current == True)
+        .order_by(ClientAddress.created_at.desc())
+        .limit(1)
+    )
+    addr = result.scalar_one_or_none()
+    if not addr:
+        return {}
     return {
-        "id": c.id, "title": c.title, "first_name": c.first_name, "last_name": c.last_name,
-        "dob": c.dob.isoformat() if c.dob else None,
-        "gender": c.gender, "councilId": c.councilId, "phone": c.phone, "email": c.email,
-        "address": c.address, "disabilities": c.disabilities or [],
-        "kin_name": c.kin_name, "kin_relation": c.kin_relation, "kin_relation_other": c.kin_relation_other,
-        "kin_address": c.kin_address, "kin_email": c.kin_email,
-        "ethnicity_type": c.ethnicity_type, "ethnicity": c.ethnicity, "language": c.language,
-        "status": c.status, "optional_fields": c.optional_fields or [],
-        "profileImg": c.profileImg or "../images/profile.png",
-        "council": (council.name if council else "Unknown")
+        "id": str(addr.id),
+        "client_id": addr.client_id,
+        "house_no": addr.house_no,
+        "street": addr.street,
+        "city": addr.city,
+        "country": addr.country,
+        "postcode": addr.postcode,
+        "created_at": addr.created_at.isoformat() if addr.created_at else None,
+        "is_current": addr.is_current,
     }
 
+
+@api.get("/clients/{client_id}/addresses/history")
+async def get_address_history(client_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(ClientAddress)
+        .where(ClientAddress.client_id == client_id)
+        .where(ClientAddress.is_current == False)
+        .order_by(ClientAddress.created_at.desc())
+    )
+    addresses = result.scalars().all()
+    return [
+        {
+            "id": str(a.id),
+            "client_id": a.client_id,
+            "house_no": a.house_no,
+            "street": a.street,
+            "city": a.city,
+            "country": a.country,
+            "postcode": a.postcode,
+            "created_at": a.created_at.isoformat() if a.created_at else None,
+            "is_current": a.is_current,
+        }
+        for a in addresses
+    ]
+
+
+# ========= Add address (move old current to history) =========
+@api.post("/clients/{client_id}/addresses")
+async def add_client_address(client_id: str, data: dict, request: Request, db: AsyncSession = Depends(get_db)):
+    client = await db.get(Client, client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    username = get_username_from_request(request)
+
+    # 1. Move previous current to history
+    await db.execute(
+        update(ClientAddress)
+        .where(ClientAddress.client_id == client_id)
+        .where(ClientAddress.is_current == True)
+        .values(is_current=False)
+    )
+
+    # 2. Insert new address as current
+    addr = ClientAddress(
+        client_id=client_id,
+        house_no=(data.get("house_no") or data.get("house_number")),
+        street=(data.get("street") or data.get("street_name")),
+        city=data.get("city"),
+        country=data.get("country"),
+        postcode=data.get("postcode"),
+        is_current=True,
+        created_by=username,
+        created_at=datetime.utcnow(),
+    )
+
+    db.add(addr)
+    await db.commit()
+    await db.refresh(addr)
+
+    return {
+        "message": "New address set as current",
+        "address": {
+            "id": str(addr.id),
+            "client_id": addr.client_id,
+            "house_no": addr.house_no,
+            "street": addr.street,
+            "city": addr.city,
+            "country": addr.country,
+            "postcode": addr.postcode,
+            "is_current": addr.is_current,
+            "created_at": addr.created_at.isoformat() if addr.created_at else None,
+        },
+    }
+
+
+# ========= Kins (All) =========
+@api.get("/clients/{client_id}/kins")
+async def get_client_kins(client_id: str, db: AsyncSession = Depends(get_db)):
+    res = await db.execute(
+        select(ClientKin)
+        .where(ClientKin.client_id == client_id)
+        .order_by(ClientKin.created_at.desc())
+    )
+    rows = res.scalars().all()
+    return [
+        {
+            "id": str(k.id),
+            "client_id": k.client_id,
+            "kin_name": k.kin_name,
+            "kin_relationship": k.kin_relationship,
+            "house_no": k.house_no,
+            "street": k.street,
+            "city": k.city,
+            "country": k.country,
+            "postcode": k.postcode,
+            "email": k.email,
+            "is_current": k.is_current,
+            "created_by": k.created_by,
+            "created_at": k.created_at.isoformat(timespec="seconds") if k.created_at else None,
+        }
+        for k in rows
+    ]
+
+
+# ========= Current / History Kin =========
+@api.get("/clients/{client_id}/kins/current")
+async def get_current_kin(client_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(ClientKin)
+        .where(ClientKin.client_id == client_id)
+        .where(ClientKin.is_current == True)
+        .order_by(ClientKin.created_at.desc())
+        .limit(1)
+    )
+    kin = result.scalar_one_or_none()
+    if not kin:
+        return {}
+    return {
+        "id": str(kin.id),
+        "client_id": kin.client_id,
+        "kin_name": kin.kin_name,
+        "kin_relationship": kin.kin_relationship,
+        "house_no": kin.house_no,
+        "street": kin.street,
+        "city": kin.city,
+        "country": kin.country,
+        "postcode": kin.postcode,
+        "email": kin.email,
+        "created_at": kin.created_at.isoformat() if kin.created_at else None,
+        "is_current": kin.is_current,
+    }
+
+
+@api.get("/clients/{client_id}/kins/history")
+async def get_kin_history(client_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(ClientKin)
+        .where(ClientKin.client_id == client_id)
+        .where(ClientKin.is_current == False)
+        .order_by(ClientKin.created_at.desc())
+    )
+    kins = result.scalars().all()
+    return [
+        {
+            "id": str(k.id),
+            "client_id": k.client_id,
+            "kin_name": k.kin_name,
+            "kin_relationship": k.kin_relationship,
+            "house_no": k.house_no,
+            "street": k.street,
+            "city": k.city,
+            "country": k.country,
+            "postcode": k.postcode,
+            "email": k.email,
+            "created_at": k.created_at.isoformat() if k.created_at else None,
+            "is_current": k.is_current,
+        }
+        for k in kins
+    ]
+
+
+# ========= Add kin (move old current to history) =========
+@api.post("/clients/{client_id}/kins")
+async def add_client_kin(client_id: str, data: dict, request: Request, db: AsyncSession = Depends(get_db)):
+    client = await db.get(Client, client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    username = get_username_from_request(request)
+
+    # 1. Move previous current kin to history
+    await db.execute(
+        update(ClientKin)
+        .where(ClientKin.client_id == client_id)
+        .where(ClientKin.is_current == True)
+        .values(is_current=False)
+    )
+
+    # 2. Insert new kin as current
+    kin = ClientKin(
+        client_id=client_id,
+        kin_name=(data.get("kin_name") or data.get("name")),
+        kin_relationship=(data.get("kin_relationship") or data.get("relationship")),
+        house_no=(data.get("house_no") or data.get("house_number")),
+        street=(data.get("street") or data.get("street_name")),
+        city=data.get("city"),
+        country=data.get("country"),
+        postcode=data.get("postcode"),
+        email=data.get("email"),
+        is_current=True,
+        created_by=username,
+        created_at=datetime.utcnow(),
+    )
+
+    db.add(kin)
+    await db.commit()
+    await db.refresh(kin)
+
+    return {
+        "message": "Next of kin updated",
+        "kin": {
+            "id": str(kin.id),
+            "client_id": kin.client_id,
+            "kin_name": kin.kin_name,
+            "kin_relationship": kin.kin_relationship,
+            "house_no": kin.house_no,
+            "street": kin.street,
+            "city": kin.city,
+            "country": kin.country,
+            "postcode": kin.postcode,
+            "email": kin.email,
+            "is_current": kin.is_current,
+            "created_at": kin.created_at.isoformat() if kin.created_at else None,
+        },
+    }
+
+
+# ========= Add client (with initial address & kin) =========
 @api.post("/clients")
 async def add_client(data: Dict, request: Request, db: AsyncSession = Depends(get_db)):
     cid = data.get("id")
     if not cid:
-        # mimic JSON incremental with padding to 10 digits (numeric base)
-        # We'll find max numeric part among existing numeric ids
         res = await db.execute(select(Client.id))
         ids = res.scalars().all()
         numeric = [int(x) for x in ids if x.isdigit()]
@@ -599,6 +961,8 @@ async def add_client(data: Dict, request: Request, db: AsyncSession = Depends(ge
         if exists:
             raise HTTPException(status_code=400, detail="Client ID already exists")
 
+    username = get_username_from_request(request)
+
     c = Client(
         id=cid,
         title=data.get("title"),
@@ -609,35 +973,98 @@ async def add_client(data: Dict, request: Request, db: AsyncSession = Depends(ge
         councilId=data.get("councilId"),
         phone=data.get("phone"),
         email=data.get("email"),
-        address=data.get("address"),
         disabilities=data.get("disabilities") or [],
-        kin_name=data.get("kin_name"),
-        kin_relation=data.get("kin_relation"),
-        kin_relation_other=data.get("kin_relation_other"),
-        kin_address=data.get("kin_address"),
-        kin_email=data.get("kin_email"),
         ethnicity_type=data.get("ethnicity_type"),
         ethnicity=data.get("ethnicity"),
         language=data.get("language"),
         status=data.get("status"),
         optional_fields=data.get("optional_fields") or [],
         profileImg=data.get("profileImg") or "../images/profile.png",
+        created_by=username,
     )
     db.add(c)
     await db.commit()
-    await log_activity(db, get_username_from_request(request), f"Client '{data.get('first_name','')} {data.get('last_name','')}' added", "client")
-    return {"message": "Client added successfully", "client": data}
 
+    # initial address
+    addr_house = (data.get("address_house_number") or "").strip()
+    addr_street = (data.get("address_street_name") or "").strip()
+    addr_city = (data.get("address_city") or "").strip()
+    addr_country = (data.get("address_country") or "").strip()
+    addr_postcode = (data.get("address_postcode") or "").strip()
+
+    if any([addr_house, addr_street, addr_city, addr_country, addr_postcode]):
+        addr = ClientAddress(
+            client_id=cid,
+            house_no=addr_house or None,
+            street=addr_street or None,
+            city=addr_city or None,
+            country=addr_country or None,
+            postcode=addr_postcode or None,
+            is_current=True,
+            created_by=username,
+            created_at=datetime.utcnow(),
+        )
+        db.add(addr)
+
+    # initial kin
+    kin_name = (data.get("kin_name") or "").strip()
+    kin_rel = (data.get("kin_relationship") or "").strip()
+    kin_house = (data.get("kin_house_number") or "").strip()
+    kin_street = (data.get("kin_street_name") or "").strip()
+    kin_city = (data.get("kin_city") or "").strip()
+    kin_country = (data.get("kin_country") or "").strip()
+    kin_postcode = (data.get("kin_postcode") or "").strip()
+    kin_email = (data.get("kin_email") or "").strip()
+
+    if any([kin_name, kin_rel, kin_house, kin_street, kin_city, kin_country, kin_postcode, kin_email]):
+        kin = ClientKin(
+            client_id=cid,
+            kin_name=kin_name or None,
+            kin_relationship=kin_rel or None,
+            house_no=kin_house or None,
+            street=kin_street or None,
+            city=kin_city or None,
+            country=kin_country or None,
+            postcode=kin_postcode or None,
+            email=kin_email or None,
+            is_current=True,
+            created_by=username,
+            created_at=datetime.utcnow(),
+        )
+        db.add(kin)
+
+    await db.commit()
+    await log_activity(
+        db,
+        username,
+        f"Client '{data.get('first_name','')} {data.get('last_name','')}' added",
+        "client",
+    )
+
+    client_json = await _client_to_json(db, c)
+    return {"message": "Client added successfully", "client": client_json}
+
+
+# ========= Update client (basic fields) =========
 @api.put("/clients/{client_id}")
 async def update_client(client_id: str, data: Dict, request: Request, db: AsyncSession = Depends(get_db)):
     c = await db.get(Client, client_id)
     if not c:
         raise HTTPException(status_code=404, detail="Client not found")
-    # update fields
+
     for k in (
-        "title", "first_name", "last_name", "gender", "councilId", "phone", "email", "address",
-        "kin_name", "kin_relation", "kin_relation_other", "kin_address", "kin_email",
-        "ethnicity_type", "ethnicity", "language", "status", "profileImg"
+        "title",
+        "first_name",
+        "last_name",
+        "gender",
+        "councilId",
+        "phone",
+        "email",
+        "ethnicity_type",
+        "ethnicity",
+        "language",
+        "status",
+        "profileImg",
     ):
         if k in data:
             setattr(c, k, data.get(k))
@@ -650,32 +1077,149 @@ async def update_client(client_id: str, data: Dict, request: Request, db: AsyncS
 
     await db.commit()
     await log_activity(db, get_username_from_request(request), f"Client '{client_id}' updated", "client")
-    council = await db.get(Council, c.councilId) if c.councilId else None
-    merged = {
-        "id": c.id, "title": c.title, "first_name": c.first_name, "last_name": c.last_name,
-        "dob": c.dob.isoformat() if c.dob else None,
-        "gender": c.gender, "councilId": c.councilId, "phone": c.phone, "email": c.email,
-        "address": c.address, "disabilities": c.disabilities or [],
-        "kin_name": c.kin_name, "kin_relation": c.kin_relation, "kin_relation_other": c.kin_relation_other,
-        "kin_address": c.kin_address, "kin_email": c.kin_email,
-        "ethnicity_type": c.ethnicity_type, "ethnicity": c.ethnicity, "language": c.language,
-        "status": c.status, "optional_fields": c.optional_fields or [],
-        "profileImg": c.profileImg or "../images/profile.png",
-        "council": (council.name if council else "Unknown")
-    }
+
+    merged = await _client_to_json(db, c)
     return {"message": "Client updated successfully", "client": merged}
+
+
+# ========= Edit a specific address row (current or history) =========
+@api.put("/clients/{client_id}/addresses/{addr_id}")
+async def update_client_address(
+    client_id: str,
+    addr_id: str,
+    data: Dict,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    client = await db.get(Client, client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    try:
+        addr_uuid = uuid.UUID(addr_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid address id")
+
+    addr = await db.get(ClientAddress, addr_uuid)
+    if not addr or addr.client_id != client_id:
+        raise HTTPException(status_code=404, detail="Address not found")
+
+    if "house_no" in data or "house_number" in data:
+        addr.house_no = (data.get("house_no") or data.get("house_number") or "").strip() or None
+    if "street" in data or "street_name" in data:
+        addr.street = (data.get("street") or data.get("street_name") or "").strip() or None
+    if "city" in data:
+        addr.city = (data.get("city") or "").strip() or None
+    if "country" in data:
+        addr.country = (data.get("country") or "").strip() or None
+    if "postcode" in data:
+        addr.postcode = (data.get("postcode") or "").strip() or None
+
+    await db.commit()
+    await db.refresh(addr)
+
+    await log_activity(
+        db,
+        get_username_from_request(request),
+        f"Address '{addr_id}' updated for client '{client_id}'",
+        "client",
+    )
+
+    return {
+        "message": "Address updated",
+        "address": {
+            "id": str(addr.id),
+            "client_id": addr.client_id,
+            "house_no": addr.house_no,
+            "street": addr.street,
+            "city": addr.city,
+            "country": addr.country,
+            "postcode": addr.postcode,
+            "is_current": addr.is_current,
+            "created_by": addr.created_by,
+            "created_at": addr.created_at.isoformat(timespec="seconds") if addr.created_at else None,
+        },
+    }
+
+
+# ========= Edit a specific kin row (current or history) =========
+@api.put("/clients/{client_id}/kins/{kin_id}")
+async def update_client_kin(
+    client_id: str,
+    kin_id: str,
+    data: Dict,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    client = await db.get(Client, client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    try:
+        kin_uuid = uuid.UUID(kin_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid kin id")
+
+    kin = await db.get(ClientKin, kin_uuid)
+    if not kin or kin.client_id != client_id:
+        raise HTTPException(status_code=404, detail="Kin not found")
+
+    if "kin_name" in data or "name" in data:
+        kin.kin_name = (data.get("kin_name") or data.get("name") or "").strip() or None
+    if "kin_relationship" in data or "relationship" in data:
+        kin.kin_relationship = (data.get("kin_relationship") or data.get("relationship") or "").strip() or None
+    if "house_no" in data or "house_number" in data:
+        kin.house_no = (data.get("house_no") or data.get("house_number") or "").strip() or None
+    if "street" in data or "street_name" in data:
+        kin.street = (data.get("street") or data.get("street_name") or "").strip() or None
+    if "city" in data:
+        kin.city = (data.get("city") or "").strip() or None
+    if "country" in data:
+        kin.country = (data.get("country") or "").strip() or None
+    if "postcode" in data:
+        kin.postcode = (data.get("postcode") or "").strip() or None
+    if "email" in data:
+        kin.email = (data.get("email") or "").strip() or None
+
+    await db.commit()
+    await db.refresh(kin)
+
+    await log_activity(
+        db,
+        get_username_from_request(request),
+        f"Kin '{kin_id}' updated for client '{client_id}'",
+        "client",
+    )
+
+    return {
+        "message": "Kin updated",
+        "kin": {
+            "id": str(kin.id),
+            "client_id": kin.client_id,
+            "kin_name": kin.kin_name,
+            "kin_relationship": kin.kin_relationship,
+            "house_no": kin.house_no,
+            "street": kin.street,
+            "city": kin.city,
+            "country": kin.country,
+            "postcode": kin.postcode,
+            "email": kin.email,
+            "is_current": kin.is_current,
+            "created_by": kin.created_by,
+            "created_at": kin.created_at.isoformat(timespec="seconds") if kin.created_at else None,
+        },
+    }
+
 
 @api.delete("/clients/{client_id}")
 async def delete_client(client_id: str, request: Request, db: AsyncSession = Depends(get_db)):
     c = await db.get(Client, client_id)
     if not c:
         raise HTTPException(status_code=404, detail="Client not found")
-    # Deleting client will cascade to services (FK on services.clientId CASCADE) and statements (serviceId CASCADE)
     await db.delete(c)
     await db.commit()
     await log_activity(db, get_username_from_request(request), f"Client '{client_id}' deleted", "client")
     return {"message": "Client deleted successfully"}
-
 # -------------------------------------------------------------------
 # SERVICES
 # -------------------------------------------------------------------
@@ -726,7 +1270,6 @@ def _service_to_json(svc: Service) -> Dict:
         "agency": svc.agency or [],
         "pa": svc.pa or [],
         "optional": svc.optional or [],
-        "notes": svc.notes or "",
         # snake mirrors (for your frontend helpers)
         "service_id": svc.serviceId,
         "client_id": svc.clientId,
@@ -856,7 +1399,7 @@ async def add_service(data: Dict, request: Request, db: AsyncSession = Depends(g
         agency=data.get("agency") or [],
         pa=data.get("pa") or [],
         optional=data.get("optional") or [],
-        notes=data.get("notes") or "",
+        created_by=get_username_from_request(request),
     )
     db.add(svc)
     await db.commit()
@@ -927,7 +1470,7 @@ async def update_service(service_id: str, data: Dict, request: Request, db: Asyn
     fields = [
         "reference","serviceType","setupFee","setupBudget","referredBy","insurance",
         "monthlyFee","initialFee","pensionSetup","pensionFee","annualFee","yearEndFee",
-        "carerBudget","agencyBudget","carers","agency","pa","optional","notes"
+        "carerBudget","agencyBudget","carers","agency","pa","optional"
     ]
     for f in fields:
         if f in data:
@@ -1311,6 +1854,215 @@ async def delete_statement_by_id(service_id: str, stmt_id: str, request: Request
     return {"message": "Statement deleted successfully", "statements": await get_statements(service_id, db)}
 
 # -------------------------------------------------------------------
+# BULK STATEMENT UPLOAD (CSV)
+# -------------------------------------------------------------------
+@api.post("/services/statements/upload-csv")
+async def upload_statements_csv(
+    file: UploadFile = File(...),
+    request: Request = None,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Upload a CSV with columns:
+      serviceId, date, description, credit, debit
+
+    Rules:
+    - enteredBy = current logged-in user (from Authorization header)
+    - Skip rows whose description contains 'monthly fee' (case-insensitive)
+      (because monthly fee is auto-generated by system)
+    - Detect duplicates per service:
+        same serviceId + date + description + credit + debit
+      -> skip those as duplicates
+    - If date is before service.startDate -> row is invalid and skipped
+    - Partially process file: insert all valid, non-duplicate, non-monthly rows
+    - Return summary with counts.
+    """
+    # ---- Basic file checks ----
+    if not file.filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Please upload a CSV file.")
+
+    try:
+        raw_bytes = await file.read()
+        text = raw_bytes.decode("utf-8-sig")  # handle BOM if present
+    except Exception:
+        raise HTTPException(status_code=400, detail="Unable to read CSV file.")
+
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="CSV file is empty.")
+
+    reader = csv.DictReader(io.StringIO(text))
+    # Normalize fieldnames (strip + lower)
+    if not reader.fieldnames:
+        raise HTTPException(status_code=400, detail="CSV has no header row.")
+
+    header_map = {h.strip().lower(): h for h in reader.fieldnames}
+    required = ["serviceid", "date", "description", "credit", "debit"]
+    missing_cols = [col for col in required if col not in header_map]
+    if missing_cols:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Missing required columns in CSV: {', '.join(missing_cols)}",
+        )
+
+    username = get_username_from_request(request) or "System"
+
+    # Collect raw rows from CSV
+    parsed_rows: list[dict] = []
+    row_errors: list[str] = []
+    monthly_skipped = 0
+
+    for idx, row in enumerate(reader, start=2):  # 2 = data row (header is 1)
+        try:
+            service_id = (row.get(header_map["serviceid"]) or "").strip()
+            date_str = (row.get(header_map["date"]) or "").strip()
+            desc = (row.get(header_map["description"]) or "").strip()
+            credit_str = (row.get(header_map["credit"]) or "").strip()
+            debit_str = (row.get(header_map["debit"]) or "").strip()
+
+            if not service_id or not date_str or not desc:
+                row_errors.append(f"Row {idx}: Missing serviceId/date/description")
+                continue
+
+            # Exclude any 'monthly fee' rows (case-insensitive)
+            if "monthly fee" in desc.lower():
+                monthly_skipped += 1
+                continue
+
+            try:
+                credit = float(credit_str) if credit_str else 0.0
+            except ValueError:
+                row_errors.append(f"Row {idx}: Invalid credit value '{credit_str}'")
+                continue
+
+            try:
+                debit = float(debit_str) if debit_str else 0.0
+            except ValueError:
+                row_errors.append(f"Row {idx}: Invalid debit value '{debit_str}'")
+                continue
+
+            d = _parse_date_any(date_str)
+            if not d:
+                row_errors.append(f"Row {idx}: Invalid date '{date_str}'")
+                continue
+
+            parsed_rows.append(
+                {
+                    "csv_row": idx,
+                    "serviceId": service_id,
+                    "date": d,
+                    "description": desc,
+                    "credit": credit,
+                    "debit": debit,
+                }
+            )
+        except Exception as e:
+            row_errors.append(f"Row {idx}: {str(e)}")
+            continue
+
+    if not parsed_rows and not monthly_skipped:
+        raise HTTPException(status_code=400, detail="No valid rows found in CSV.")
+
+    # Group rows by serviceId to reduce DB work
+    rows_by_service: dict[str, list[dict]] = {}
+    for r in parsed_rows:
+        rows_by_service.setdefault(r["serviceId"], []).append(r)
+
+    inserted_count = 0
+    duplicate_count = 0
+    invalid_before_start = 0
+    services_not_found: set[str] = set()
+
+    # Process each service separately
+    for service_id, rows in rows_by_service.items():
+        svc = await db.get(Service, service_id)
+        if not svc:
+            services_not_found.add(service_id)
+            continue
+
+        # Load existing statements once for this service
+        res = await db.execute(select(Statement).where(Statement.serviceId == service_id))
+        existing = res.scalars().all()
+
+        # Build a set for duplicate detection: (date, desc, credit, debit)
+        existing_keys = set()
+        for s in existing:
+            key = (
+                s.date.isoformat() if s.date else "",
+                (s.description or "").strip().lower(),
+                float(s.credit or 0),
+                float(s.debit or 0),
+            )
+            existing_keys.add(key)
+
+        for r in rows:
+            # Validate date is not before service.startDate
+            if svc.startDate and r["date"] < svc.startDate:
+                invalid_before_start += 1
+                row_errors.append(
+                    f"Row {r['csv_row']}: Date {r['date']} is before service start date {svc.startDate}"
+                )
+                continue
+
+            key = (
+                r["date"].isoformat(),
+                r["description"].strip().lower(),
+                float(r["credit"] or 0),
+                float(r["debit"] or 0),
+            )
+            if key in existing_keys:
+                # exact duplicate of existing (date + description + credit + debit)
+                duplicate_count += 1
+                row_errors.append(
+                    f"Row {r['csv_row']}: Duplicate statement already exists for service {service_id}"
+                )
+                continue
+
+            # Create new Statement
+            new_stmt = Statement(
+                id=str(uuid.uuid4()),
+                serviceId=service_id,
+                date=r["date"],
+                description=r["description"],
+                credit=r["credit"],
+                debit=r["debit"],
+                enteredBy=username,
+                created_at=datetime.utcnow(),
+            )
+            db.add(new_stmt)
+            inserted_count += 1
+            # Add to existing_keys so further rows in the same file are checked
+            existing_keys.add(key)
+
+        # After processing rows for this service, run budget check (context date = today)
+        await check_and_log_budget_exceed(db, service_id, username)
+
+    await db.commit()
+
+    # Build response summary
+    detail_parts = [
+        f"Inserted: {inserted_count}",
+        f"Skipped monthly-fee rows: {monthly_skipped}",
+        f"Skipped duplicates: {duplicate_count}",
+        f"Skipped before service start date: {invalid_before_start}",
+    ]
+    if services_not_found:
+        detail_parts.append(
+            f"Unknown services in CSV: {', '.join(sorted(services_not_found))}"
+        )
+
+    return {
+        "message": "Statement CSV processed",
+        "summary": " | ".join(detail_parts),
+        "inserted": inserted_count,
+        "skipped_monthly_fee": monthly_skipped,
+        "skipped_duplicates": duplicate_count,
+        "skipped_before_start": invalid_before_start,
+        "services_not_found": sorted(services_not_found),
+        "row_errors": row_errors,  # list of per-row issues for UI display if needed
+        "uploaded_by": username,
+    }
+
+# -------------------------------------------------------------------
 # PDF export
 # -------------------------------------------------------------------
 @api.get("/services/{service_id}/statements/download")
@@ -1527,7 +2279,253 @@ async def download_statements_csv(service_id: str, start: Optional[str] = None, 
     fn = f"Statement_Report_{client_name.replace(' ','_')}_{service_id}.csv"
     headers = {"Content-Disposition": f'attachment; filename="{fn}"'}
     return StreamingResponse(BytesIO(csv_bytes), media_type="text/csv", headers=headers)
+# -------------------------------------------------------------------
+# Address CSV export
+# -------------------------------------------------------------------
+@api.get("/clients/{client_id}/addresses/csv")
+async def download_client_addresses_csv(client_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(ClientAddress).where(ClientAddress.client_id == client_id))
+    addresses = result.scalars().all()
 
+    if not addresses:
+        raise HTTPException(status_code=404, detail="No address history found")
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["House Number", "Street", "City", "Country", "Postcode", "Created At"])
+
+    for a in addresses:
+        writer.writerow(
+            [
+                a.house_no,
+                a.street,
+                a.city,
+                a.country,
+                a.postcode,
+                a.created_at.isoformat(timespec="seconds") if a.created_at else "",
+            ]
+        )
+
+    csv_data = output.getvalue()
+    output.close()
+
+    return Response(
+        content=csv_data,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=client_{client_id}_address_history.csv",
+        },
+    )
+
+# -------------------------------------------------------------------
+# KIN CSV export
+# -------------------------------------------------------------------
+@api.get("/clients/{client_id}/kins/csv")
+async def download_client_kins_csv(client_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(ClientKin).where(ClientKin.client_id == client_id))
+    kins = result.scalars().all()
+
+    if not kins:
+        raise HTTPException(status_code=404, detail="No kin history found")
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(
+        [
+            "Name",
+            "Relationship",
+            "House Number",
+            "Street",
+            "City",
+            "Country",
+            "Postcode",
+            "Email",
+            "Created At",
+        ]
+    )
+
+    for k in kins:
+        writer.writerow(
+            [
+                k.kin_name,
+                k.kin_relationship,
+                k.house_no,
+                k.street,
+                k.city,
+                k.country,
+                k.postcode,
+                k.email,
+                k.created_at.isoformat(timespec="seconds") if k.created_at else "",
+            ]
+        )
+
+    csv_data = output.getvalue()
+    output.close()
+
+    return Response(
+        content=csv_data,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=client_{client_id}_kin_history.csv",
+        },
+    )
+
+notes_router = APIRouter(prefix="/api/services", tags=["Notes"])
+# ============================================
+# NOTES API (FULL + EXPLICIT IDs)
+# ============================================
+def note_to_json(n: ServiceNote):
+    return {
+        "id": str(n.id),
+        "service_id": n.service_id,
+        "note_date": n.note_date,
+        "description": n.description,
+        "created_by": n.created_by,
+        "created_at": n.created_at
+    }
+@notes_router.post("/{service_id}/notes")
+async def create_note(service_id: str, payload: NoteCreate, db: AsyncSession = Depends(get_db)):
+    new_note = ServiceNote(
+        service_id=service_id,
+        note_date=payload.note_date,
+        description=payload.description,
+        created_by=payload.created_by
+    )
+    db.add(new_note)
+    await db.commit()
+    await db.refresh(new_note)
+
+    return {"message": "note created", "note": note_to_json(new_note)}
+
+@notes_router.get("/{service_id}/notes")
+async def list_notes(service_id: str, db: AsyncSession = Depends(get_db)):
+    stmt = (
+        select(
+            ServiceNote.id,
+            ServiceNote.service_id,
+            ServiceNote.note_date,
+            ServiceNote.description,
+            ServiceNote.created_by,
+            ServiceNote.created_at,
+        )
+        .where(ServiceNote.service_id == service_id)
+        .order_by(ServiceNote.note_date.desc(), ServiceNote.created_at.desc())
+    )
+
+    result = await db.execute(stmt)
+    notes = result.fetchall()
+
+    return [
+        {
+            "id": str(n.id),
+            "service_id": n.service_id,
+            "note_date": n.note_date,
+            "description": n.description,
+            "created_by": n.created_by,
+            "created_at": n.created_at,
+        }
+        for n in notes
+    ]
+
+
+@notes_router.put("/{service_id}/notes/{note_id}")
+async def update_note(
+    service_id: str,
+    note_id: str,
+    payload: NoteUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = (
+        update(ServiceNote)
+        .where(ServiceNote.id == note_id, ServiceNote.service_id == service_id)
+        .values(
+            note_date=payload.note_date,
+            description=payload.description,
+            created_by=payload.created_by,
+        )
+        .returning(ServiceNote.id,
+                   ServiceNote.service_id,
+                   ServiceNote.note_date,
+                   ServiceNote.description,
+                   ServiceNote.created_by,
+                   ServiceNote.created_at)
+    )
+
+    result = await db.execute(stmt)
+    updated = result.fetchone()
+    await db.commit()
+
+    if not updated:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    return {
+        "message": "Note updated",
+        "note": {
+            "id": str(updated.id),
+            "service_id": updated.service_id,
+            "note_date": updated.note_date,
+            "description": updated.description,
+            "created_by": updated.created_by,
+            "created_at": updated.created_at,
+        },
+    }
+
+
+@notes_router.delete("/{service_id}/notes/{note_id}")
+async def delete_note(service_id: str, note_id: str, db: AsyncSession = Depends(get_db)):
+    stmt = delete(ServiceNote).where(
+        ServiceNote.id == note_id,
+        ServiceNote.service_id == service_id,
+    )
+
+    result = await db.execute(stmt)
+    await db.commit()
+
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    return {"message": "Note deleted", "id": note_id}
+    
+@notes_router.get("/{service_id}/notes/csv")
+async def export_notes_csv(service_id: str, db: AsyncSession = Depends(get_db)):
+    svc = await db.get(Service, service_id)
+    if not svc:
+        raise HTTPException(status_code=404, detail="Service not found")
+
+    client_id = svc.clientId
+
+    result = await db.execute(
+        select(ServiceNote).where(ServiceNote.service_id == service_id)
+    )
+    notes = result.scalars().all()
+
+    if not notes:
+        raise HTTPException(status_code=404, detail="No notes found")
+
+    output = StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(["Client ID", client_id])
+    writer.writerow([])
+    writer.writerow(["Note Date", "Description", "Created By", "Created At"])
+
+    for n in notes:
+        writer.writerow([
+            n.note_date.strftime("%Y-%m-%d"),
+            n.description.replace(",", " "),
+            n.created_by,
+            n.created_at.strftime("%Y-%m-%d %H:%M:%S") if n.created_at else "",
+        ])
+
+    csv_bytes = output.getvalue().encode("utf-8-sig")
+    filename = f"Notes_{client_id}_{service_id}.csv"
+
+    return StreamingResponse(
+        BytesIO(csv_bytes),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )    
+    
 # -------------------------------------------------------------------
 # Notifications
 # -------------------------------------------------------------------
@@ -1548,28 +2546,23 @@ async def get_notifications(db: AsyncSession = Depends(get_db)):
 # -------------------------------------------------------------------
 @app.on_event("startup")
 async def on_startup():
-    """
-    Automatically ensure all database tables exist on startup.
-    Also load SUPER_ADMINS from .env
-    """
     try:
         async with engine.begin() as conn:
-            # Test DB connection
             await conn.execute(select(func.now()))
-            # Auto-create any missing tables
             await conn.run_sync(Base.metadata.create_all)
         print("✅ Database connected and tables verified/created.")
     except Exception as e:
         print(f"❌ Database connection failed: {e}")
         raise
 
-    # Load super admins from environment
     global SUPER_ADMINS
     SUPER_ADMINS = _load_super_admins_from_env()
     if not SUPER_ADMINS:
         print("⚠ No SUPER ADMINS configured in .env (SUPERADMINS=[...]); relying on DB users only.")
+
     # ✅ Auto-run monthly debit generator
     async with AsyncSessionLocal() as db:
         await ensure_monthly_debits(db)
 
 app.include_router(api)
+app.include_router(notes_router)

@@ -20,6 +20,7 @@
   color: #333;
 }
 
+/* ---------- SERVICE SECTION HEADERS (main form only) ---------- */
 .section-header {
   font-weight: bold;
   font-size: 18px;
@@ -84,7 +85,6 @@
 }
 
 /* ---------- OPTIONAL FIELDS ---------- */
-/* Optional fields – view-only */
 .optional-field-container.view-only .optional-field.static {
   display: flex;
   align-items: baseline;
@@ -99,7 +99,6 @@
 .optional-field-container.view-only .optional-field.static span {
   color: #222;
 }
-
 
 .service-add-btn,
 .service-remove-btn {
@@ -166,6 +165,7 @@
   background: #666;
 }
 
+/* ---------- ADD CLIENT PAGE (renamed to avoid clash) ---------- */
 .add-client-container {
   max-width: 1000px;
   margin: 30px auto;
@@ -181,35 +181,41 @@
   margin-bottom: 20px;
 }
 
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 12px 20px;
-}
-
-.form-group, .form-row {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label, .form-row label {
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.form-group input, .form-row input, select {
-  padding: 6px 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
-.section-header {
+/* Unique header for add-client */
+.client-section-header {
   margin-top: 25px;
   font-weight: 700;
   font-size: 1.1em;
   color: #333;
 }
 
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px 20px;
+}
+
+.form-group,
+.form-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label,
+.form-row label {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.form-group input,
+.form-row input,
+select {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* ---------- BUTTON GROUP ---------- */
 .button-group {
   text-align: center;
   margin-top: 25px;

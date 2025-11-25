@@ -69,7 +69,13 @@ export function enforceAccessControl() {
     console.log("✅ Super Admin: Full access granted (frontend bypass)");
     return;
   }
-
+  
+  // Viewprofile1 must NOR hide/disable UI Buttons
+  if (window.location.pathname.includes("Viewprofile1.html")){
+	console.log("AC UI Bypass on Viewprofile1");
+    return;	
+  }
+	
   const perms = getPermissions();
   console.log("🔒 Applying CRUD access control for:", user.username, perms);
 

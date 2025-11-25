@@ -4,7 +4,7 @@
 // Full CRUD + Statement API + Secure CORS + Normalization
 // ============================================
 
-const BASE_URL = "http://13.40.179.19:8000/api/services"; // ← Adjust if backend runs on another port
+const BASE_URL = "http://127.0.0.1:8000/api/services"; // ← Adjust if backend runs on another port
 
 // --------------------
 // Auth & Helpers
@@ -181,6 +181,26 @@ export async function deleteStatement(serviceId, statementId) {
 }
 
 // ============================================
+// BULK STATEMENT UPLOAD (CSV)
+// ============================================
+export async function uploadStatementsCSV(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${BASE_URL}/statements/upload-csv`, {
+    method: "POST",
+    headers: {
+      // ❗ do NOT set Content-Type manually for FormData
+      ...authHeaders(),
+    },
+    body: formData,
+    mode: "cors",
+  });
+
+  return handle(res); // will parse JSON or text via existing helper
+}
+
+// ============================================
 // FILE DOWNLOADS
 // ============================================
 export async function downloadStatement(serviceId, format = "pdf") {
@@ -236,4 +256,70 @@ export async function downloadStatementCSV(serviceId, start, end) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(dlUrl);
+}
+
+// ============================================
+// NOTES (Nested under serviceId)
+// ============================================
+
+// Fetch all notes for a service
+export async function fetchNotes(serviceId) {
+  const res = await fetch(`${BASE_URL}/${serviceId}/notes`, {
+    method: "GET",
+    headers: { ...authHeaders() },
+    mode: "cors",
+  });
+  return handle(res); // returns list of notes
+}
+
+// Create a new note
+export async function createNote(serviceId, data) {
+  const res = await fetch(`${BASE_URL}/${serviceId}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    mode: "cors",
+    body: JSON.stringify(data),
+  });
+  return handle(res);
+}
+
+// Update a note
+export async function updateNote(serviceId, noteId, data) {
+  const res = await fetch(`${BASE_URL}/${serviceId}/notes/${noteId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    mode: "cors",
+    body: JSON.stringify(data),
+  });
+  return handle(res);
+}
+
+// Delete a note
+export async function deleteNote(serviceId, noteId) {
+  const res = await fetch(`${BASE_URL}/${serviceId}/notes/${noteId}`, {
+    method: "DELETE",
+    headers: { ...authHeaders() },
+    mode: "cors",
+  });
+  return handle(res);
+}
+
+export async function downloadNotesCSV(serviceId) {
+  const res = await fetch(`${BASE_URL}/${serviceId}/notes/csv`, {
+    method: "GET",
+    headers: { ...authHeaders() },
+    mode: "cors",
+  });
+
+  if (!res.ok) throw new Error("Failed to download notes CSV");
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Notes_${serviceId}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
 }

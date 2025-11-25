@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="../assets/css/services.css">
   <link rel="stylesheet" href="../assets/css/view-service.css">
   <link rel="stylesheet" href="../assets/css/statement.css">
+  <link rel="stylesheet" href="../assets/css/notes.css">
 </head>
 
 <body>
@@ -29,8 +30,10 @@
 
   <!-- ✅ Action Buttons -->
   <div class="action-buttons">
-    <button id="clientReportBtn" class="btn-client">Client Report</button>
-    <button id="addClientBtn" class="btn-client">Add New Client</button>
+    <button id="uploadStatementBtn" class="btn-statement" data-permission="statement.add">Upload Statements</button>
+    <input type="file" id="statementFileInput" accept=".csv" style="display:none"/>
+    <button id="clientReportBtn" class="btn-report">Client Report</button>
+    <button id="addClientBtn" class="btn-client" data-permission="client.add">Add New Client</button>
   </div>
 
   <!-- ✅ Client Table -->
