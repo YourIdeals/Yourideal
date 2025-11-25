@@ -69,6 +69,7 @@ async def get_db():
 # -------------------------------------------------------------------
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {'schema': 'yi'}
     # primary key = username (TEXT)
     username = Column(String, primary_key=True)
     password_hash = Column(String, nullable=False)
@@ -80,6 +81,7 @@ class User(Base):
 
 class Council(Base):
     __tablename__ = "councils"
+    __table_args__ = {'schema': 'yi'}
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     address = Column(String, nullable=True)
@@ -91,6 +93,7 @@ class Council(Base):
 
 class Client(Base):
     __tablename__ = "clients"
+    __table_args__ = {'schema': 'yi'}
     id = Column(String, primary_key=True)  # "0000045562"
     title = Column(String, nullable=True)
     first_name = Column(String, nullable=True)
@@ -111,6 +114,7 @@ class Client(Base):
 
 class ClientAddress(Base):
     __tablename__ = "client_address"  # ✅ fixed
+    __table_args__ = {'schema': 'yi'}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     client_id = Column(String, ForeignKey("clients.id", ondelete="CASCADE"))
     house_no = Column(String)
@@ -125,6 +129,7 @@ class ClientAddress(Base):
 
 class ClientKin(Base):
     __tablename__ = "client_kin"  # ✅ fixed
+    __table_args__ = {'schema': 'yi'}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     client_id = Column(String, ForeignKey("clients.id", ondelete="CASCADE"))  # ✅ fixed extra ]
     kin_name = Column(String)
@@ -141,6 +146,7 @@ class ClientKin(Base):
     
 class Service(Base):
     __tablename__ = "services"
+    __table_args__ = {'schema': 'yi'}
     # exact camelCase PK
     serviceId = Column(String, primary_key=True)  # "SV-<clientId>-0001"
     clientId = Column(String, ForeignKey("clients.id", ondelete="CASCADE"), nullable=False)
@@ -169,6 +175,7 @@ class Service(Base):
 
 class Statement(Base):
     __tablename__ = "statements"
+    __table_args__ = {'schema': 'yi'}
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     serviceId = Column(String, ForeignKey("services.serviceId"), nullable=False)
     date = Column(Date)
@@ -180,7 +187,7 @@ class Statement(Base):
 
 class ServiceNote(Base):
     __tablename__ = "notes"
-
+    __table_args__ = {'schema': 'yi'}
     id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
     service_id = Column(String, ForeignKey("services.serviceId", ondelete="CASCADE"), nullable=False)
     note_date = Column(Date, nullable=False)
@@ -190,6 +197,7 @@ class ServiceNote(Base):
     
 class Notification(Base):
     __tablename__ = "notifications"
+    __table_args__ = {'schema': 'yi'}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)  # UUID string
     user = Column(String, nullable=True)
     action = Column(Text, nullable=True)
