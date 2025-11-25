@@ -100,7 +100,7 @@ class Client(Base):
     last_name = Column(String, nullable=True)
     dob = Column(Date, nullable=True)
     gender = Column(String, nullable=True)
-    councilId = Column(Integer, ForeignKey("councils.id", ondelete="SET NULL"), nullable=True)
+    councilId = Column(Integer, ForeignKey("yi.councils.id", ondelete="SET NULL"), nullable=True)
     phone = Column(String, nullable=True)
     email = Column(String, nullable=True)
     disabilities = Column(JSONB, nullable=True)      # list
@@ -116,7 +116,7 @@ class ClientAddress(Base):
     __tablename__ = "client_address"  # ✅ fixed
     __table_args__ = {'schema': 'yi'}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    client_id = Column(String, ForeignKey("clients.id", ondelete="CASCADE"))
+    client_id = Column(String, ForeignKey("yi.clients.id", ondelete="CASCADE"))
     house_no = Column(String)
     street = Column(String)
     city = Column(String)
@@ -131,7 +131,7 @@ class ClientKin(Base):
     __tablename__ = "client_kin"  # ✅ fixed
     __table_args__ = {'schema': 'yi'}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    client_id = Column(String, ForeignKey("clients.id", ondelete="CASCADE"))  # ✅ fixed extra ]
+    client_id = Column(String, ForeignKey("yi.clients.id", ondelete="CASCADE"))  # ✅ fixed extra ]
     kin_name = Column(String)
     kin_relationship = Column(String)
     house_no = Column(String)
@@ -149,7 +149,7 @@ class Service(Base):
     __table_args__ = {'schema': 'yi'}
     # exact camelCase PK
     serviceId = Column(String, primary_key=True)  # "SV-<clientId>-0001"
-    clientId = Column(String, ForeignKey("clients.id", ondelete="CASCADE"), nullable=False)
+    clientId = Column(String, ForeignKey("yi.clients.id", ondelete="CASCADE"), nullable=False)
 
     reference = Column(String, nullable=True)
     serviceType = Column(String, nullable=True)
@@ -177,7 +177,7 @@ class Statement(Base):
     __tablename__ = "statements"
     __table_args__ = {'schema': 'yi'}
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    serviceId = Column(String, ForeignKey("services.serviceId"), nullable=False)
+    serviceId = Column(String, ForeignKey("yi.services.serviceId"), nullable=False)
     date = Column(Date)
     description = Column(Text)
     credit = Column(Numeric(12, 2), default=0)
@@ -189,7 +189,7 @@ class ServiceNote(Base):
     __tablename__ = "notes"
     __table_args__ = {'schema': 'yi'}
     id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
-    service_id = Column(String, ForeignKey("services.serviceId", ondelete="CASCADE"), nullable=False)
+    service_id = Column(String, ForeignKey("yi.services.serviceId", ondelete="CASCADE"), nullable=False)
     note_date = Column(Date, nullable=False)
     description = Column(Text, nullable=False)
     created_by = Column(String, nullable=False)
