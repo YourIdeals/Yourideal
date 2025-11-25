@@ -98,6 +98,12 @@ const REPORT_FIELD_GROUPS = [
         get: ({ client }) => client.gender || '',
       },
       {
+        id: 'client_disabilities',
+        label: 'Disability',
+        essential: false,
+        get: ({ client }) => client.disabilities?.join(", ") || "-",
+      },	  
+      {
         id: 'client_language',
         label: 'Language',
         essential: false,
