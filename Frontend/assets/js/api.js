@@ -2,8 +2,8 @@
 // assets/js/api.js — Global API for login, users, clients, councils
 // ============================================
 
-const BASE_URL = "http://13.40.179.19/api";
-const COUNCIL_BASE = "http://13.40.179.19/api/councils";
+const BASE_URL = "/api";
+const COUNCIL_BASE = "/api/councils";
 
 // ---------------- AUTH ----------------
 export async function apiLogin(username, password) {
