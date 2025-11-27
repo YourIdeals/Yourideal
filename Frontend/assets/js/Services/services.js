@@ -26,6 +26,83 @@ import { enforceAccessControl, validateSession, requirePermission } from "../acc
 const WORKSPACE_ID = "svcWorkspace";
 
 // ============================================
+// Date Helper Functions (MOVE THESE OUTSIDE Main Renderer)
+// ============================================
+
+function formatDateToUK(date) {
+    if (!date) return "-"; 
+    if (date.includes('/') && date.split('/')[2]?.length === 4) {
+		return date;
+    }	
+    let d;
+    if (date.includes('/')) {
+        // Already in dd/mm/yyyy format
+        const [day, month, year] = date.split('-');
+        d = new Date(year, month, day);
+    } else {
+        // yyyy-mm-dd format
+        d = new Date(date);
+    }
+  
+    return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("en-GB");  
+}
+
+function formatDateForInput(dateStr) {
+    if (!dateStr) return "";
+      
+    if (dateStr.includes('/')) {
+        // Convert dd/mm/yyyy to yyyy-mm-dd for input[type="date"]
+        const [day, month, year] = dateStr.split('/');
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    } else if (dateStr.includes('-')) {
+		// Already in yyyy-mm-dd format
+		return dateStr;
+	}
+  
+    // Already in yyyy-mm-dd format
+    return dateStr;  
+}
+
+function formatDateForAPI(dateStr) {
+    if (!dateStr) return "";
+    
+    if (dateStr.includes('/')) {
+        // Convert dd/mm/yyyy to yyyy-mm-dd for API
+        const [day, month, year] = dateStr.split('/');
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+    
+    // Already in yyyy-mm-dd format (from date input)
+    return dateStr; 
+}
+
+// NEW FUNCTION: Convert database date to proper display format
+function convertDatabaseDateToDisplay(dbDate) {
+    if (!dbDate) return "";
+    
+    if (dbDate.includes('-')) {
+        const [year, month, day] = dbDate.split('-');
+        // Convert yyyy-mm-dd to dd/mm/yyyy for display
+        return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+    }
+    
+    return dbDate;
+}
+
+// NEW FUNCTION: Convert display date to database format
+function convertDisplayDateToDatabase(displayDate) {
+    if (!displayDate) return "";
+    
+    if (displayDate.includes('/')) {
+        const [day, month, year] = displayDate.split('/');
+        // Convert dd/mm/yyyy to yyyy-mm-dd for database
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+    
+    return displayDate;
+}
+
+// ============================================
 // Workspace Shell
 // ============================================
 function ensureWorkspaceShell() {
@@ -105,6 +182,8 @@ export async function renderServicePage(clientId) {
 
   const safe = (v) => (v ?? v === 0 ? v : "-");
   const num = (v) => (Number.isFinite(parseFloat(v)) ? parseFloat(v) : 0);
+    
+  // Update the normalize function to handle date formats consistently
   const normalize = (s) => ({
     serviceId: s.serviceId || s.service_id,
     clientId: s.clientId || s.client_id,
@@ -112,8 +191,9 @@ export async function renderServicePage(clientId) {
     serviceType: s.serviceType || s.service_type,
     setupFee: s.setupFee || s.setup_fee,
     setupBudget: s.setupBudget ?? s.setup_budget ?? 0,
-    startDate: s.startDate || s.start_date || "",
-    endDate: s.endDate || s.end_date || "",
+    startDate: convertDatabaseDateToDisplay(s.startDate || s.start_date || ""), // CONVERT HERE
+    endDate: convertDatabaseDateToDisplay(s.endDate || s.end_date || ""), // CONVERT HERE
+    referredBy: s.referredBy || s.referred_by || "",
     referredBy: s.referredBy || s.referred_by || "",
     insurance: s.insurance || "",
     monthlyFee: num(s.monthlyFee ?? s.monthly_fee),
@@ -127,18 +207,11 @@ export async function renderServicePage(clientId) {
     carers: Array.isArray(s.carers) ? s.carers : [],
     agency: Array.isArray(s.agency) ? s.agency : [],
     pa: Array.isArray(s.pa) ? s.pa : [],
-    optional: Array.isArray(s.optional) ? s.optional : [],
+    optional: Array.isArray(s.optional) ? s.optional : [],   
   });
-
-  function formatDateToUK(date) {
-    if (!date) return "-";
-    const d = new Date(date);
-    return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("en-GB");
-  }
 
   let allServices = [];
   let clientServices = [];
-
 
   // ======================================================
   // Load Services (with view permission)
@@ -332,6 +405,10 @@ export async function renderServicePage(clientId) {
       details.style.display = "block";
 
       const d = { ...serviceDefaults, clientId, reference: "" };
+      // Format dates for display in input fields
+      const formattedStartDate = formatDateForInput(d.startDate);
+      const formattedEndDate = formatDateForInput(d.endDate);	
+	  
       const form = shell.querySelector("#serviceForm");
       form.innerHTML = `
         <div class="section-header">Add New Service</div>
@@ -349,8 +426,8 @@ export async function renderServicePage(clientId) {
         ${buildDropdown("serviceType", "Service Type", serviceTypeOptions, d.serviceType)}
         ${buildDropdown("setupFee", "Setup Fee", setupFeeOptions, d.setupFee)}
         ${currencyRow("setupBudget", "Setup Budget (£)", d.setupBudget)}
-        ${dateRow("startDate", "Start Date", d.startDate)}
-        ${dateRow("endDate", "End Date", d.endDate)}
+        ${dateRow("startDate", "Start Date", formattedStartDate)}
+        ${dateRow("endDate", "End Date", formattedEndDate)}
         ${buildDropdown("referredBy", "Referred By", referredByOptions, d.referredBy)}
 
         <div class="form-row">
@@ -409,8 +486,8 @@ export async function renderServicePage(clientId) {
         serviceType: pick("serviceType"),
         setupFee: pick("setupFee"),
         setupBudget: parseFloat(pick("setupBudget")) || 0,
-        startDate: pick("startDate"),
-        endDate: pick("endDate"),
+        startDate: convertDisplayDateToDatabase(pick("startDate")), // USE NEW FUNCTION
+        endDate: convertDisplayDateToDatabase(pick("endDate")), // USE NEW FUNCTION
         referredBy: pick("referredBy"),
         insurance: pick("insurance"),
         monthlyFee: parseFloat(pick("monthlyFee")) || 0,

@@ -557,7 +557,6 @@ async function renderEditMode() {
     <select id="kin_rel_edit">
       <option value="">Select</option>
       ${kinOptions.map((k) => `<option>${k}</option>`).join("")}
-      <option value="Other">Other</option>
     </select>
   `;
   form.appendChild(kinRelGroup);

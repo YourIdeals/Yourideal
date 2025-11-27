@@ -171,7 +171,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         <select id="kin_relationship">
           <option value="">Select</option>
           ${kinOptions.map(k => `<option>${k}</option>`).join("")}
-          <option value="Other">Other</option>
         </select>
       </div>
 

@@ -26,8 +26,8 @@ const normalize = (s = {}) => ({
   serviceType: s.serviceType || s.service_type,
   setupFee: s.setupFee || s.setup_fee,
   setupBudget: s.setupBudget ?? s.setup_budget ?? 0,
-  startDate: s.startDate || s.start_date || "",
-  endDate: s.endDate || s.end_date || "",
+  startDate: convertDatabaseDateToDisplay(s.startDate || s.start_date || ""),
+  endDate: convertDatabaseDateToDisplay(s.endDate || s.end_date || ""), // CONVERT HERE
   referredBy: s.referredBy || s.referred_by || "",
   insurance: s.insurance || "",
   monthlyFee: num(s.monthlyFee ?? s.monthly_fee),
@@ -68,8 +68,8 @@ export function renderServiceDetails(data = {}) {
       ${viewRow("Service Type", d.serviceType)}
       ${viewRow("Setup Fee", d.setupFee)}
       ${viewRow("Setup Budget", "£" + parseFloat(d.setupBudget || 0).toFixed(2))}
-      ${viewRow("Start Date", formatUK(d.startDate))}
-      ${viewRow("End Date", formatUK(d.endDate))}
+      ${viewRow("Start Date", convertDisplayDateToDatabase(d.startDate))}
+      ${viewRow("End Date", convertDisplayDateToDatabase(d.endDate))}
       ${viewRow("Referred By", d.referredBy || "-")}
       ${viewRow("Insurance", d.insurance || "-")}
 
@@ -191,8 +191,8 @@ function collectFormData() {
     serviceType: getVal("service_type"),
     setupFee: getVal("setup_fee"),
     setupBudget: parseFloat(getVal("setup_budget")) || 0,
-    startDate: getVal("start_date"),
-    endDate: getVal("end_date"),
+    startDate: convertDisplayDateToDatabase(pick("startDate")), // USE NEW FUNCTION
+    endDate: convertDisplayDateToDatabase(pick("endDate")), // USE NEW FUNCTION
     optional: collectOptionalFields(),
   };
 
@@ -261,17 +261,78 @@ function getVal(id) {
   return el ? el.value.trim() : "";
 }
 
-function formatUK(dateStr) {
-  if (!dateStr) return "-";
-  const d = new Date(dateStr);
-  return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString("en-GB");
+// ====================================================
+// CORRECTED Date Helper Functions for view-service.js
+// ====================================================
+
+function formatDateToUK(date) {
+    if (!date) return "-"; 
+    
+    // If it's already in dd/mm/yyyy format, return as is
+    if (date.includes('/') && date.split('/')[2]?.length === 4) {
+        return date;
+    }
+    
+    let d;
+    if (date.includes('-')) {
+        // Handle yyyy-mm-dd format from database
+        const [year, month, day] = date.split('-');
+        d = new Date(year, month - 1, day); // month is 0-indexed in Date
+    } else {
+        d = new Date(date);
+    }
+  
+    return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("en-GB");  
 }
 
 function formatDateForInput(dateStr) {
-  if (!dateStr) return "";
-  if (dateStr.includes("/")) {
-    const [d, m, y] = dateStr.split("/");
-    return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
-  }
-  return dateStr;
+    if (!dateStr) return "";
+    
+    if (dateStr.includes('/')) {
+        // Convert dd/mm/yyyy to yyyy-mm-dd for input[type="date"]
+        const [day, month, year] = dateStr.split('/');
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    } else if (dateStr.includes('-')) {
+        // Already in yyyy-mm-dd format
+        return dateStr;
+    }
+    
+    return dateStr;  
+}
+
+function formatDateForAPI(dateStr) {
+    if (!dateStr) return "";
+    
+    if (dateStr.includes('/')) {
+        // Convert dd/mm/yyyy to yyyy-mm-dd for API
+        const [day, month, year] = dateStr.split('/');
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+    
+    // Already in yyyy-mm-dd format (from date input)
+    return dateStr; 
+}
+
+function convertDatabaseDateToDisplay(dbDate) {
+    if (!dbDate) return "";
+    
+    if (dbDate.includes('-')) {
+        const [year, month, day] = dbDate.split('-');
+        // Convert yyyy-mm-dd to dd/mm/yyyy for display
+        return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+    }
+    
+    return dbDate;
+}
+
+function convertDisplayDateToDatabase(displayDate) {
+    if (!displayDate) return "";
+    
+    if (displayDate.includes('/')) {
+        const [day, month, year] = displayDate.split('/');
+        // Convert dd/mm/yyyy to yyyy-mm-dd for database
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+    
+    return displayDate;
 }

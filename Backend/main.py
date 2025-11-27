@@ -1311,7 +1311,9 @@ def get_service_start_date_dict(service: Dict) -> date:
 
 def generate_one_time_entries_raw(service: Dict, entered_by="System"):
     start_dt = get_service_start_date_dict(service)
-    start_str = start_dt.strftime("%d/%m/%Y")
+    # Use the 1st day of the service start month instead of the exact start date
+    month_start_dt = date(start_dt.year, start_dt.month, 1)
+    start_str = month_start_dt.strftime("%d/%m/%Y")
     start_year = start_dt.year
     end_year = start_year + 1
     setup_name = service.get("setupFee") or ""
@@ -1320,7 +1322,7 @@ def generate_one_time_entries_raw(service: Dict, entered_by="System"):
     def push(desc, debit):
         if debit and float(debit) > 0:
             out.append({
-                "date": start_str,
+                "date": start_str,  # This will now be 01/MM/YYYY instead of the exact start date
                 "description": desc,
                 "credit": 0.0,
                 "debit": float(debit),
