@@ -189,7 +189,7 @@ class ServiceNote(Base):
     __tablename__ = "notes"
     __table_args__ = {'schema': 'yi'}
     id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
-    serviceId = Column(String, ForeignKey("yi.services.serviceId"), nullable=False)
+    service_id = Column(String, ForeignKey("yi.services.serviceId", ondelete="CASCADE"), nullable=False)
     note_date = Column(Date, nullable=False)
     description = Column(Text, nullable=False)
     created_by = Column(String, nullable=False)
